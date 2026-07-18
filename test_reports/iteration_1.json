@@ -1,0 +1,37 @@
+{
+  "summary": "First-pass end-to-end verification of Centro Educacional Favo de Mel. All backend endpoints pass (14/14 pytest). All frontend flows verified: home site loads, public lead form submits with success toast, admin login accepts typed input (both fill & type variants produced the expected value), token stored in localStorage 'favo_token' (215 chars), /admin/dashboard navigation and leads listing, lead status update, logout clears token, and unauthenticated /admin/dashboard redirects to /admin.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/server.py CORS: allow_credentials=True combined with allow_origins='*' (from CORS_ORIGINS default) is not spec-compliant; browsers reject credentialed requests to a wildcard origin. Not currently an issue because the frontend uses Bearer tokens (no cookies), but if cookie auth is added later, replace '*' with explicit origins.",
+    "backend/server.py PATCH /api/admin/leads/{id} does not validate the incoming body via Pydantic and does not verify the lead exists (a bogus id silently returns {ok:true} because update_one just no-ops). Consider a Pydantic model with an allowed status enum ('novo','em contato','matriculado','arquivado') and return 404 when the lead does not exist.",
+    "backend uses deprecated @app.on_event('startup') / 'shutdown'; migrate to FastAPI lifespan context to avoid future breakage.",
+    "AdminDashboard.jsx: useEffect dependency array is empty but reads `token` and `navigate` — works today but React lint will warn; also, the axios `auth` object is recreated on every render (fine, just noting).",
+    "AdminDashboard status Select: optimistic update happens BEFORE the API call, but on error the code only shows a toast and does NOT revert the local state, so the UI can silently drift from the server. Consider rollback on failure.",
+    "Contact.jsx does not validate email format before submitting client-side (backend does, but a friendlier inline error would be nicer).",
+    "No rate limiting / brute-force protection on POST /api/auth/login (playbook mentions lockout after 5 failed attempts). Consider adding IP+email based throttling.",
+    "No pagination on GET /api/admin/leads (hard-coded to_list(1000)); acceptable for MVP but should be revisited as leads grow."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (new)"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% of tested flows"},
+  "test_credentials": "admin@favodemel.com.br / Favo@2025 (from /app/memory/test_credentials.md) — verified working",
+  "seed_data_creation": "Several TEST_ prefixed leads created via public POST /api/leads during pytest and UI runs. They remain in DB (test DB); not cleaned up because dashboard visual verification uses them. Safe to purge by DB admin if desired.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "backend_test.py under /app/backend/tests/ covers /api/leads (public), /api/auth/login (success/wrong password/wrong email), /api/auth/me (with/without/invalid token), /api/admin/leads (auth required, sort newest first, marker lead verification), and PATCH /api/admin/leads/{id}. Reusable as regression suite. Admin login UI captures typed input correctly (playwright fill AND type both worked) — the earlier suspicion of the email field not capturing input was Playwright flakiness, NOT a real bug. Sonner toasts auto-dismiss quickly; poll DOM within ~1s of the action.",
+  "rca of the issue": "N/A — no bugs identified. Regarding the reported suspicion 'email input may not capture typed value': reproduced with both page.fill and page.type; both correctly produced 'admin@favodemel.com.br' in the input, login succeeded, and dashboard opened. This was Playwright timing flakiness (likely the page not being fully hydrated on the first attempt), not an application bug."
+}

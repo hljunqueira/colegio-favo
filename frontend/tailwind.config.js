@@ -12,7 +12,19 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
       },
+      fontFamily: {
+        display: ['"Cabinet Grotesk"', 'sans-serif'],
+        serifed: ['"Cormorant Garamond"', 'serif'],
+        body: ['Manrope', 'sans-serif'],
+      },
       colors: {
+        honey: '#FFB01D',
+        amber: '#E68A00',
+        moss: '#2C402E',
+        cream: '#FDFBF7',
+        'cream-2': '#F3EFE6',
+        dark: '#212B22',
+        ink: '#1A1A1A',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
