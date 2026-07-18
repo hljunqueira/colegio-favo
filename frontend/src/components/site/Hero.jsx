@@ -55,7 +55,7 @@ export const Hero = () => {
             className="mt-8 flex flex-col sm:flex-row sm:items-center gap-6"
           >
             <p className="max-w-sm font-body text-base" style={{ color: "var(--ink-2)" }}>
-              Um lugar onde cada criança é acolhida, aprende brincando e floresce no seu tempo.
+              A educação em que nós acreditamos: cada criança acolhida, aprendendo com afeto — do berçário ao 9º ano.
             </p>
             <a
               href="#contato"
