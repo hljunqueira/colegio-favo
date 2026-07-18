@@ -1,31 +1,47 @@
 # PRD — Centro Educacional Favo de Mel
 
 ## Problem Statement
-Institutional website (PT-BR) for "Centro Educacional Favo de Mel", a kindergarten in
-Balneário Arroio do Silva – SC, Brazil. Award-worthy animated marketing site + lead
-capture + simple admin panel. Phone (48) 99627-5127, Google 4,4 / 47 reviews.
+Plataforma (PT-BR) para o "Centro Educacional Favo de Mel" (Colégio Favo), escola em Balneário
+Arroio do Silva - SC que oferece Educação Infantil e Ensino Fundamental (Berçário ao 9º ano).
+Slogan: "A educação em que nós acreditamos". Google 4,4 / 47 avaliações. Tel (48) 99627-5127.
+Endereço: Av. Florianópolis - Centro, Balneário Arroio do Silva - SC, 88914-000.
 
 ## Architecture
-- Frontend: React 19 + Tailwind + shadcn/ui, framer-motion + Lenis smooth scroll.
-- Backend: FastAPI (routes under /api) + MongoDB (motor).
-- Auth: JWT email/password (Bearer token in localStorage 'favo_token'), admin seeded on startup.
+- Frontend: React 19 + Tailwind + shadcn/ui, framer-motion + lenis, sonner. Fonts: Cabinet Grotesk / Cormorant Garamond / Manrope.
+- Backend: FastAPI + Motor (MongoDB). JWT Bearer auth (bcrypt). Rotas sob /api.
+- Art direction "Golden Hive": amber/honey + moss/dark + cream. Logo real (abelha/favo).
 
-## User Personas
-- Parents (public): browse, evaluate trust signals, submit visit/enrollment request.
-- Admin/Secretaria: log in, view & triage leads (status workflow).
+## Personas
+- Pais/responsáveis pesquisando a escola (site) e acompanhando o filho (portal).
+- Administração/secretaria gerindo alunos, turmas, financeiro, comunicados (ERP).
 
-## Implemented (2026-07-18)
-- Kinetic hero (masked line reveal, parallax image, Google rating badge).
-- Editorial marquee, numbered manifesto chapters (01/02/03), Turmas bento grid,
-  gallery with hover reveal, dark contact section with form + Google map + footer.
-- Public POST /api/leads (lead capture) with success toast.
-- Admin: /api/auth/login, /auth/me, /api/admin/leads (GET), PATCH status.
-- Admin UI: /admin (login), /admin/dashboard (list + status Select, logout, route guard).
-- Design system "The Golden Hive": amber/honey/moss/cream, Cabinet Grotesk + Cormorant + Manrope.
-- Verified: testing_agent iteration_1 → backend 14/14, frontend 100% of flows.
+## Implemented — Phase 1 (2026-07-18)
+- Site institucional animado (Hero cinético, Marquee, Manifesto, Segmentos Berçário→9º ano, Galeria, Contato, Footer).
+- Formulário de contato/matrícula persistido; /admin login + dashboard (leads + comunicados). Backend 14/14.
 
-## Backlog
-- P1: Email notification to school on new lead (Resend), lead detail/notes.
-- P1: WhatsApp deep-link CTA; brute-force lockout on login; PATCH 404 + status enum validation.
-- P2: CMS-style gallery upload, About/História page, blog/avisos, pagination on leads.
-- P2: Migrate startup events to FastAPI lifespan; optimistic-update rollback in dashboard.
+## Implemented — Phase 2 (2026-07-18)
+- Logo real aplicada em site/portal/ERP + favicon/título.
+- CTA flutuante de WhatsApp "Fale conosco agora" (wa.me) na home.
+- Portal do Responsável (estilo SATC): /portal + /portal/app (Mural/Comunicados, Agenda c/ calendário, Boletim, Financeiro, Cardápio).
+- ERP "Gestão Favo" em /gestao (role admin) com sidebar por módulos.
+  Funcionais: Dashboard, Alunos (CRUD+busca+arquivar), Turmas, Professores, Responsáveis, Comunicados (→ portal),
+  Contatos/leads, Mensalidades/Financeiro, Usuários.
+  Scaffolds "Em desenvolvimento" (design pronto): funcionários, séries, disciplinas, matrículas, rematrículas,
+  transferências, calendário, relatórios, plano de aula, diário, chamada, notas, atividades, materiais, agenda,
+  ocorrências, mensagens, eventos, receitas, despesas, PIX/boletos, inadimplência, fluxo de caixa, biblioteca
+  (acervo/empréstimos/reservas), portaria, controle de acesso, enfermaria, medicamentos/alergias, perfis, logs,
+  integrações, configurações.
+- Dados demo semeados. Tested: backend 26/26, todos os fluxos front (testing_agent iteration_3), incl. guards + cross-feature.
+
+## Credenciais
+- Admin/ERP: admin@favodemel.com.br / Favo@2025 -> /gestao
+- Responsável/Portal: responsavel@favodemel.com.br / Favo@2025 -> /portal/app
+
+## Backlog / Próximas fases (P0→P2)
+- P0 (ativar scaffolds de maior valor): Matrículas (wizard + documentos), Financeiro completo (PIX/boletos,
+  inadimplência, fluxo de caixa), Notas/Boletim editável por professor, Chamada/Frequência.
+- P1: Diário de classe, Plano de aula (BNCC), Mensagens escola↔família, Calendário letivo, Relatórios/exportações.
+- P1 técnicos: rate-limit/lockout no login; migrar on_event → lifespan; split server.py em routers;
+  PATCH com Pydantic + enum + 404; rollback de updates otimistas; CORS explícito.
+- P2: Biblioteca, Portaria/visitantes, Saúde/medicamentos, Perfis & Permissões, Logs/Auditoria, Integrações.
+- P2 negócio: notificação por e-mail em novos leads/comunicados (Resend); PWA/push; multi-perfil (professor/coordenação).
