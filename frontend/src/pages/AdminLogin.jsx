@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { saveSession } from "@/lib/auth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -25,9 +26,9 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       const { data } = await axios.post(`${API}/auth/login`, { email, password });
-      localStorage.setItem("favo_token", data.token);
+      saveSession(data.token, data.user);
       toast.success("Bem-vindo(a)!");
-      navigate("/admin/dashboard");
+      navigate("/gestao");
     } catch (err) {
       toast.error(formatErr(err.response?.data?.detail));
     } finally {
@@ -43,9 +44,7 @@ export default function AdminLogin() {
         </a>
         <div className="bg-cream rounded-[1.75rem] p-8 sm:p-10 border border-ink/10 shadow-xl">
           <div className="flex items-center gap-2 mb-8">
-            <span className="w-10 h-10 hex-clip bg-honey flex items-center justify-center">
-              <span className="font-display font-black text-dark text-lg">F</span>
-            </span>
+            <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-12 h-12 rounded-lg object-cover" />
             <span className="font-display font-extrabold tracking-tight text-xl text-ink">Área administrativa</span>
           </div>
           <form onSubmit={submit} className="space-y-5" data-testid="admin-login-form">

@@ -1,0 +1,31 @@
+{
+  "summary": "End-to-end regression + new-feature testing of Centro Educacional Favo de Mel. Backend: 26/26 pytest cases pass (4.23s) covering /api/leads, /api/auth, /api/admin/leads, /api/avisos, /api/portal/dashboard, /api/gestao/{stats,alunos,turmas,professores,financeiro,responsaveis,usuarios} incl. role-based 401/403 guards. Frontend: home floating WhatsApp CTA opens card and points to wa.me; navbar and portal/erp headers render /logo-favo.jpg; Portal login (responsavel@favodemel.com.br / Favo@2025) -> /portal/app; Mural shows 3 seeded avisos; Agenda/Boletim(6 rows)/Financeiro(4 rows)/Cardapio(5 rows) sidebar switches work; portal logout -> /portal; /portal/app without token -> /portal. Admin login (admin@favodemel.com.br / Favo@2025) -> /gestao (NOT /admin/dashboard) as required; Inicio dashboard loads real stats; Alunos CRUD (create + count increments + search filters to 1); Turmas create; Professores create; Responsaveis, Contatos, Financeiro, Usuarios load real data; scaffold-matriculas/livros/portaria render 'Em desenvolvimento'. Auth guards: /gestao without token -> /admin; responsavel visiting /gestao is redirected to /portal/app. CROSS-FEATURE: comunicado created in gnav-comunicados immediately visible in responsavel portal Mural.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PATCH /api/admin/leads/{id} (line 193-197) and PATCH /api/gestao/alunos/{id} accept an untyped dict body. leads PATCH does not verify existence, silently returns {ok:true} for a bogus id and has no status enum. Add a Pydantic model + status Literal + 404 on missing.",
+    "server.py still uses deprecated @app.on_event('startup'/'shutdown') and is one file of ~483 lines — migrate to a FastAPI lifespan context and split into routers (auth, leads, avisos, portal, gestao) before it gets larger.",
+    "CORSMiddleware runs with allow_credentials=True and default allow_origins='*' from .env (CORS_ORIGINS='*'). Not exercised today (Bearer only) but insecure and non-spec-compliant; tighten to explicit origins.",
+    "No brute-force / rate-limit protection on POST /api/auth/login (playbook suggests lockout after 5 fails).",
+    "Admin optimistic updates (AdminDashboard.setStatus, Alunos.arquivar, Comms.setStatus, Comms.del) do not roll back on API failure — UI can drift from server state.",
+    "PortalDashboard hard-codes selected date to new Date(2025,10,12); once we cross Nov 2025 in real time this becomes a UX stale-state (currently shows Nov 2025 default month). Consider defaulting to today's date, falling back to the seeded month only if there are no events near today.",
+    "Gestao.jsx: <main className='max-w-6xl'> is fine but the max width caps content on ultrawide monitors; consider max-w-7xl for the ERP dashboard.",
+    "Gestao alunos-count is populated only after async load; add a loading skeleton (was flaky in tests until wait-for-timeout was added).",
+    "backend seed_admin does not re-seed the responsavel password if it changes in code (only checked on first insert). If Favo@2025 rotates in the source, existing dev DBs stay on the old hash."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (expanded from 14 to 26 tests: added avisos, portal, gestao stats/alunos/turmas/professores/financeiro/responsaveis/usuarios coverage + role-guard 403 tests)"
+  ],
+  "success_rate": {"backend": "100% (26/26)", "frontend": "100% of tested flows"},
+  "test_credentials": "admin@favodemel.com.br / Favo@2025 (admin -> /gestao); responsavel@favodemel.com.br / Favo@2025 (responsavel -> /portal/app). Both verified working end-to-end.",
+  "seed_data_creation": "Pytest and the Playwright run leave a handful of TEST_-prefixed leads, alunos, turmas, professores, avisos in the test DB (e.g. 'TEST Aluno UI2 89b5ae', 'TEST Turma UI ...', 'TEST Aviso UI ...'). Safe to purge; kept for future regression visual sanity.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All new features (WhatsApp float, logo, Portal do Responsavel, Gestao ERP) confirmed working. Correct data-testids in use: whatsapp-toggle/whatsapp-cta, portal-email/portal-password/portal-submit, portal-dashboard, nav-mural/nav-agenda/nav-boletim/nav-financeiro/nav-cardapio, aviso-item, boletim-row (6 rows), financeiro-row (4 rows in portal / N in gestao), cardapio-row (5 rows), portal-logout, login-email/login-password/login-submit, gestao-page, gnav-<key> (33 nav keys — 9 functional, 24 scaffolds), stat-<key>, alunos-count/novo-aluno-btn/aluno-form/aluno-name/aluno-turma/aluno-matricula/aluno-save/alunos-search, aluno-<id>/arquivar-<id>, nova-turma-btn/turma-form/turma-nome/turma-save/turma-<id>, novo-professor-btn/professor-form/professor-name/professor-save/professor-<id>, aviso-titulo/aviso-texto/aviso-categoria/aviso-submit/aviso-<id>/delete-aviso-<id>, leads-count/lead-<id>/status-<id>, scaffold-<key>, gestao-logout. Admin login now navigates to /gestao (NOT /admin/dashboard) — the leads UI is embedded inside gestao at gnav-contatos. IMPORTANT: alunos-count updates AFTER async fetch settles — always await a small timeout (>=1200ms) after clicking gnav-alunos or aluno-save before reading the count. When testing responsavel-visits-/gestao redirect, the useEffect calls /api/auth/me first, so wait ~1500ms before asserting page.url.",
+  "rca of the issue": "N/A — no bugs found. Only note: initial run of alunos-count check was flaky because the Alunos component fetches via useEffect and re-renders the count Badge after the axios call resolves. Fixed by adding wait_for_timeout(1500) before reading the count. This is a test-hygiene note, not a product bug."
+}

@@ -3,6 +3,9 @@ import { Toaster } from "@/components/ui/sonner";
 import Home from "@/pages/Home";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
+import PortalLogin from "@/pages/PortalLogin";
+import PortalDashboard from "@/pages/PortalDashboard";
+import Gestao from "@/pages/Gestao";
 
 function App() {
   return (
@@ -14,6 +17,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/gestao" element={<Gestao />} />
+          <Route path="/portal" element={<PortalLogin />} />
+          <Route path="/portal/app" element={<PortalDashboard />} />
         </Routes>
       </BrowserRouter>
     </>
