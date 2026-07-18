@@ -1,0 +1,35 @@
+{
+  "summary": "Re-verified Centro Educacional Favo de Mel end-to-end. Backend: all 14 pytest cases pass (2.29s). Frontend: home page + all 6 site sections render, all 5 navbar links present, 4 program cards, public lead form submits with success toast and resets, admin login rejects wrong password and accepts correct credentials, JWT token (215 chars) persisted in localStorage 'favo_token', /admin/dashboard lists leads with count badge (5 leads), status change via per-row Select works (updates to 'matriculado' with 'Status atualizado' toast), logout clears token and returns to /admin, and unauthenticated /admin/dashboard redirects to /admin.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/server.py CORS: allow_credentials=True with allow_origins='*' (default in CORS_ORIGINS) is not spec-compliant. Not currently exercised because frontend uses Bearer tokens; must be tightened to explicit origins before adding cookie-based auth.",
+    "PATCH /api/admin/leads/{id} accepts an untyped dict body and does not verify the lead exists — a bogus id silently returns {ok:true}. Add a Pydantic model with a status enum ('novo','em contato','matriculado','arquivado') and return 404 if the lead is missing.",
+    "backend still uses deprecated @app.on_event('startup'/'shutdown'); migrate to FastAPI lifespan context.",
+    "AdminDashboard.setStatus does an optimistic update but does NOT roll back on API failure — UI can drift from server state.",
+    "AdminDashboard.useEffect has empty deps but reads `token`/`navigate`; will trigger react-hooks/exhaustive-deps warning.",
+    "Contact.jsx does no client-side email format validation before hitting the API (backend catches it, but inline UX would be better).",
+    "No brute-force / rate-limit protection on POST /api/auth/login (playbook suggests lockout after 5 fails).",
+    "GET /api/admin/leads has no pagination (hard-coded to_list(1000)); acceptable for MVP."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% of tested flows"},
+  "test_credentials": "admin@favodemel.com.br / Favo@2025 (from /app/memory/test_credentials.md) — verified working",
+  "seed_data_creation": "A handful of TEST_ prefixed leads created by pytest and the Playwright run remain in the test DB (5 leads at time of last dashboard check). Safe to purge; kept for future regression visual sanity.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Correct data-testid names to use in Playwright: main-navbar, hero-section, programs-section, gallery-section, contact-section, site-footer, program-card-*, nav-<Label>, lead-form, input-parent-name, input-phone, input-email, input-child-name, input-message, select-program, submit-lead, admin-login-page, admin-login-form, login-email, login-password, login-submit, admin-dashboard, leads-count, lead-{id} (row wrapper), status-{id} (Select trigger), logout-btn. Note: the request document mentions 'lead-row-{id}' but the actual DOM uses 'lead-{id}'. Toast is Sonner (top-center, richColors) and dismisses quickly (~2s). Backend regression suite lives in /app/backend/tests/backend_test.py.",
+  "rca of the issue": "N/A — no bugs found in this iteration either."
+}
