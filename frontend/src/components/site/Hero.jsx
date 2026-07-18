@@ -42,10 +42,22 @@ export const Hero = () => {
             </span>
           </motion.div>
 
+          <div className="overflow-hidden mb-2">
+            <motion.p
+              variants={line}
+              custom={0}
+              initial="hidden"
+              animate="show"
+              className="font-display font-extrabold tracking-[0.25em] uppercase text-amber text-xl sm:text-2xl lg:text-3xl"
+            >
+              Colégio
+            </motion.p>
+          </div>
+
           <h1 className="font-display font-black tracking-tighter leading-[0.85] text-ink text-[19vw] sm:text-[15vw] lg:text-[11vw]">
-            <MaskedLine i={0}>FAVO</MaskedLine>
-            <MaskedLine i={1} className="text-amber italic font-serif-ed font-normal lowercase">de</MaskedLine>
-            <MaskedLine i={2}>MEL</MaskedLine>
+            <MaskedLine i={1}>FAVO</MaskedLine>
+            <MaskedLine i={2} className="text-amber italic font-serif-ed font-normal lowercase">de</MaskedLine>
+            <MaskedLine i={3}>MEL</MaskedLine>
           </h1>
 
           <motion.div
