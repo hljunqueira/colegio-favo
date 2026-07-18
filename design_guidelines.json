@@ -1,0 +1,115 @@
+{
+  "project": {
+    "name": "Centro Educacional Favo de Mel",
+    "type": "marketing_site_institutional",
+    "audience": "Brazilian parents seeking a warm, premium, and trustworthy kindergarten"
+  },
+  "art_direction": {
+    "concept": "The Golden Hive (A Colmeia Dourada)",
+    "description": "An award-worthy (Awwwards-level) editorial approach blending organic warmth with structural precision. Moving away from standard primary colors, it uses a sophisticated palette of warm amber, soft cream, and deep moss green. It combines bold typographic tension (Cabinet Grotesk + Cormorant Garamond) with subtle honeycomb motifs, massive negative space, and deliberate, clipped real photography. Prioritize motion and craft over everything else."
+  },
+  "typography": {
+    "fonts": {
+      "primary_heading": {
+        "family": "Cabinet Grotesk",
+        "weights": ["800", "900"],
+        "usage": "Massive kinetic hero text, section titles. Must use tracking-tighter. No generic sans."
+      },
+      "editorial_accent": {
+        "family": "Cormorant Garamond",
+        "weights": ["400", "400i"],
+        "usage": "Numbered manifesto chapters (01, 02, 03) and pull quotes. Adds a high-end editorial feel."
+      },
+      "body": {
+        "family": "Manrope",
+        "weights": ["400", "500"],
+        "usage": "All body copy, forms, and small labels. Clean and highly legible."
+      }
+    },
+    "guidelines": "Never use Inter, Roboto, or Space Grotesk. Headings must be asymmetrical. Large typographic contrast (e.g., text-8xl next to text-sm)."
+  },
+  "colors": {
+    "palette": {
+      "background_primary": "#FDFBF7", 
+      "background_secondary": "#F3EFE6",
+      "dark_section": "#212B22",
+      "text_primary": "#1A1A1A",
+      "text_secondary": "#4A4A4A",
+      "text_on_dark": "#FDFBF7",
+      "accent_amber": "#E68A00",
+      "accent_honey": "#FFB01D",
+      "accent_moss": "#2C402E"
+    },
+    "rules": "Avoid generic SaaS blue or bright red. Color exists to guide action and emotion. Use the Dark Section (#212B22) for the Footer and Manifesto to create dramatic rhythm."
+  },
+  "visual_enhancers": {
+    "borders": "1px solid rgba(26,26,26,0.1) for grid divisions (Swiss Grid feel).",
+    "textures": "Subtle SVG noise overlay fixed at pointer-events-none over the entire body (opacity 2%).",
+    "shapes": "Use subtle hexagonal clip-paths (`clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)`) selectively for image frames or hover reveals.",
+    "glassmorphism": "For sticky navigation: backdrop-blur-xl bg-[#FDFBF7]/70 with a delicate 1px bottom border. NO purely transparent headers."
+  },
+  "layouts": {
+    "hero": "Kinetic typography 'FAVO DE MEL' split into lines, taking up 80% of screen. Masked line-by-line reveal on load. A clipped image sits tightly aligned to a grid edge. Add a subtle parallax effect on scroll.",
+    "manifesto": "Asymmetrical layout. Large serif numbers (01, 02, 03) in Cormorant Garamond on the left. Heading and text on the right. Huge padding (py-32).",
+    "marquee": "Slow moving editorial ribbon. Font: Cabinet Grotesk, text-8xl, uppercase, outline style (text-transparent stroke-1 stroke-black).",
+    "programs_turmas": "Bento grid (Tetris mode). 3 blocks: Berçário, Maternal, Jardim. Dense layout with high-quality imagery.",
+    "gallery": "Grid with mixed aspect ratios (tall, square, wide). Clipped/masked frames that reveal full color on hover.",
+    "contact_footer": "Massive typography 'VENHA NOS CONHECER' (text-[10vw]). Contact details (Google 4.4 rating, address, phone) in a sharp grid. Dark background (#212B22)."
+  },
+  "motion": {
+    "libraries": ["framer-motion", "lenis"],
+    "hero_reveal": "staggerChildren with y: 100, opacity: 0 to y: 0, opacity: 1 and a custom cubic-bezier(0.76, 0, 0.24, 1).",
+    "scroll_animations": "WhileInView transitions. Elements slide up slightly (y: 30) with 0.8s duration.",
+    "parallax": "Use framer-motion `useScroll` and `useTransform` for images to move slower than the page."
+  },
+  "components": [
+    {
+      "name": "KineticHeroText",
+      "purpose": "A custom component for splitting text and masking it with overflow-hidden wrappers for a line-by-line reveal."
+    },
+    {
+      "name": "HexagonImage",
+      "purpose": "Applies a honeycomb clip-path to an image."
+    },
+    {
+      "name": "EditorialMarquee",
+      "purpose": "Infinite scrolling marquee using react-fast-marquee."
+    }
+  ],
+  "image_urls": [
+    {
+      "category": "Hero / Emotional Intro",
+      "url": "https://images.unsplash.com/photo-1613794713137-a78aba4be84a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxraW5kZXJnYXJ0ZW4lMjBraWRzJTIwcGxheWluZyUyMHdhcm0lMjBzdW5saWdodHxlbnwwfHx8fDE3ODQyOTQxNjN8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Girl playing in warm sunlight, sets the premium emotional tone."
+    },
+    {
+      "category": "Classroom / Programs (Maternal/Jardim)",
+      "url": "https://images.pexels.com/photos/8535629/pexels-photo-8535629.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Bright, modern preschool classroom architecture."
+    },
+    {
+      "category": "Play / Activity Gallery",
+      "url": "https://images.unsplash.com/photo-1597075958693-75173d1c837f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwyfHxraW5kZXJnYXJ0ZW4lMjBraWRzJTIwcGxheWluZyUyMHdhcm0lMjBzdW5saWdodHxlbnwwfHx8fDE3ODQyOTQxNjN8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Children on playground/court in warm sunlight."
+    },
+    {
+      "category": "Background Texture (Optional)",
+      "url": "https://images.pexels.com/photos/33045251/pexels-photo-33045251.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Macro honeycomb geometric texture, can be used at 5% opacity for background depth."
+    }
+  ],
+  "accessibility": {
+    "contrast": "Ensure Amber text against Cream background passes APCA. Use Moss Green (#2C402E) for small body text to guarantee legibility.",
+    "motion": "Respect `prefers-reduced-motion`. Disable parallax and heavy kinetic reveals for these users.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute (e.g., `data-testid=\"enrollment-button\"`)."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Do not center-align the main app layout. Embrace asymmetric, editorial layouts with wide margins.",
+    "Do NOT use complete `transparent` background in headers, overlays, or any surface with content underneath. Use a blur/glassmorphism or solid color.",
+    "Use Generous Spacing: apply 2-3x more spacing (py-24, py-32) than standard Tailwind templates to achieve luxury.",
+    "Never use placeholder URLs. Use the provided image_urls for all visual assets.",
+    "Add 'data-testid' to all buttons, links, and forms.",
+    "Typography: Apply 'tracking-tighter' to Cabinet Grotesk headings, and 'tracking-widest' uppercase to small labels. DO NOT USE INTER OR ROBOTO."
+  ]
+}
