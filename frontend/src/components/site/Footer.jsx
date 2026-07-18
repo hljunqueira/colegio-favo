@@ -13,10 +13,7 @@ export const Footer = () => {
         </p>
         <div className="flex items-center gap-5">
           <a href="/portal" data-testid="footer-portal-link" className="font-body text-xs text-cream/60 hover:text-honey transition-colors">
-            Portal do Responsável
-          </a>
-          <a href="/admin" data-testid="admin-link" className="font-body text-xs text-cream/40 hover:text-honey transition-colors">
-            Área administrativa
+            Acessar o sistema
           </a>
         </div>
       </div>

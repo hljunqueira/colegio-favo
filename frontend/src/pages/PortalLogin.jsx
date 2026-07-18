@@ -23,7 +23,8 @@ export default function PortalLogin() {
       const { data } = await axios.post(`${API}/auth/login`, { email, password });
       saveSession(data.token, data.user);
       toast.success(`Bem-vindo(a), ${data.user?.name?.split(" ")[0] || ""}!`);
-      navigate(data.user?.role === "admin" ? "/gestao" : "/portal/app");
+      const role = data.user?.role;
+      navigate(role === "admin" ? "/gestao" : "/portal/app");
     } catch (err) {
       toast.error(formatErr(err.response?.data?.detail));
     } finally {
@@ -37,18 +38,19 @@ export default function PortalLogin() {
       <div className="relative hidden lg:flex flex-col justify-between p-12 bg-dark overflow-hidden">
         <img src={IMAGES.play} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25" />
         <div className="relative">
-          <div className="flex items-center gap-2">
-            <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-12 h-12 rounded-lg object-cover" />
-            <span className="font-display font-extrabold tracking-tight text-cream text-lg">Favo de Mel</span>
+          <div className="flex items-center gap-3">
+            <img src="/logo-favo.jpg" alt="Colégio Favo de Mel" className="w-14 h-14 rounded-lg object-cover" />
+            <span className="font-display font-extrabold tracking-tight text-cream text-lg">Colégio Favo de Mel</span>
           </div>
         </div>
         <div className="relative">
-          <p className="font-body text-xs tracking-[0.25em] uppercase text-honey mb-4">Portal do Responsável</p>
+          <p className="font-body text-xs tracking-[0.25em] uppercase text-honey mb-4">Portal de Acesso</p>
           <h1 className="font-display font-black tracking-tighter text-cream text-6xl leading-[0.9]">
-            Acompanhe<br />cada <span className="font-serif-ed italic font-normal text-honey">passo</span>.
+            Tudo em<br />um só <span className="font-serif-ed italic font-normal text-honey">lugar</span>.
           </h1>
           <p className="font-body text-cream/70 mt-6 max-w-sm">
-            Boletim, agenda, comunicados e financeiro do seu filho, tudo em um só lugar.
+            Acesso único para Responsáveis, Administração, Professores e Funcionários.
+            O sistema direciona você automaticamente conforme o seu perfil.
           </p>
         </div>
         <div className="relative flex items-center gap-6 text-cream/60 font-body text-xs">
@@ -63,8 +65,8 @@ export default function PortalLogin() {
           <a href="/" className="inline-flex items-center gap-2 font-body text-sm mb-10 hover:text-amber transition-colors" style={{ color: "var(--ink-2)" }}>
             <ArrowLeft size={16} /> Voltar ao site
           </a>
-          <h2 className="font-display font-extrabold tracking-tight text-3xl text-ink">Portal Favo de Mel</h2>
-          <p className="font-body mt-2 mb-8" style={{ color: "var(--ink-2)" }}>Entre com seus dados de acesso.</p>
+          <h2 className="font-display font-extrabold tracking-tight text-3xl text-ink">Acessar o sistema</h2>
+          <p className="font-body mt-2 mb-8" style={{ color: "var(--ink-2)" }}>Entre com seu e-mail e senha.</p>
 
           <form onSubmit={submit} className="space-y-5" data-testid="portal-login-form">
             <div className="space-y-2">
@@ -85,9 +87,10 @@ export default function PortalLogin() {
             </button>
           </form>
 
-          <div className="mt-8 rounded-xl bg-cream-2 border border-ink/10 p-4 font-body text-xs" style={{ color: "var(--ink-2)" }}>
-            <p className="font-semibold text-ink mb-1">Acesso de demonstração</p>
-            responsavel@favodemel.com.br · Favo@2025
+          <div className="mt-8 rounded-xl bg-cream-2 border border-ink/10 p-4 font-body text-xs space-y-2" style={{ color: "var(--ink-2)" }}>
+            <p className="font-semibold text-ink">Acessos de demonstração</p>
+            <p><span className="text-amber font-semibold">Responsável:</span> responsavel@favodemel.com.br · Favo@2025</p>
+            <p><span className="text-amber font-semibold">Administração:</span> admin@favodemel.com.br · Favo@2025</p>
           </div>
         </div>
       </div>

@@ -42,13 +42,13 @@ export const Hero = () => {
             </span>
           </motion.div>
 
-          <div className="overflow-hidden mb-2">
+          <div className="overflow-hidden mb-1">
             <motion.p
               variants={line}
               custom={0}
               initial="hidden"
               animate="show"
-              className="font-display font-extrabold tracking-[0.25em] uppercase text-amber text-xl sm:text-2xl lg:text-3xl"
+              className="font-display font-black tracking-tighter uppercase text-ink text-4xl sm:text-5xl lg:text-6xl leading-none"
             >
               Colégio
             </motion.p>

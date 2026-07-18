@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import Home from "@/pages/Home";
-import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PortalLogin from "@/pages/PortalLogin";
 import PortalDashboard from "@/pages/PortalDashboard";
@@ -15,11 +14,13 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/gestao" element={<Gestao />} />
+          {/* Unified login for all roles */}
           <Route path="/portal" element={<PortalLogin />} />
+          <Route path="/login" element={<Navigate to="/portal" replace />} />
+          <Route path="/admin" element={<Navigate to="/portal" replace />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/portal/app" element={<PortalDashboard />} />
+          <Route path="/gestao" element={<Gestao />} />
         </Routes>
       </BrowserRouter>
     </>

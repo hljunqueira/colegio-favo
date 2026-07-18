@@ -31,12 +31,9 @@ export const Navbar = () => {
         scrolled ? "backdrop-blur-xl bg-cream/70 border-b border-ink/10" : "bg-transparent"
       }`}
     >
-      <nav className="max-w-[1400px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
-        <a href="#inicio" data-testid="logo-link" className="flex items-center gap-2 group">
-          <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
-          <span className="font-display font-extrabold tracking-tighter text-lg text-ink">
-            Favo de Mel
-          </span>
+      <nav className="max-w-[1400px] mx-auto px-5 sm:px-8 h-24 flex items-center justify-between">
+        <a href="#inicio" data-testid="logo-link" className="flex items-center group">
+          <img src="/logo-favo.jpg" alt="Colégio Favo de Mel" className="w-20 h-20 rounded-xl object-cover" />
         </a>
 
         <div className="hidden lg:flex items-center gap-9">

@@ -21,17 +21,17 @@ export default function Gestao() {
   const user = getUser();
 
   useEffect(() => {
-    if (!getToken()) { navigate("/admin"); return; }
+    if (!getToken()) { navigate("/portal"); return; }
     axios.get(`${API}/auth/me`, authHeader())
       .then((r) => {
         if (r.data?.role !== "admin") { navigate("/portal/app"); return; }
         setReady(true);
       })
-      .catch(() => { clearSession(); navigate("/admin"); });
+      .catch(() => { clearSession(); navigate("/portal"); });
   }, [navigate]);
 
   const go = (key) => { setView(key); setOpenNav(false); };
-  const logout = () => { clearSession(); navigate("/admin"); };
+  const logout = () => { clearSession(); navigate("/portal"); };
   const active = ALL_ITEMS.find((i) => i.key === view);
 
   const renderView = () => {
