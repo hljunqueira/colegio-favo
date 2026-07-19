@@ -31,7 +31,7 @@ export default function Gestao() {
 
   // Filtragem dinâmica do menu lateral baseado na Role do Usuário (RBAC)
   const filteredNavGroups = useMemo(() => {
-    const role = user?.role;
+    const role = (user?.role || "").toUpperCase();
     if (!role) return [];
     if (["ADMIN", "DIRETORIA"].includes(role)) return NAV_GROUPS;
 
@@ -64,7 +64,7 @@ export default function Gestao() {
     if (!getToken()) { navigate("/portal"); return; }
     axios.get(`${API}/auth/me`, authHeader())
       .then((r) => {
-        const role = r.data?.role;
+        const role = (r.data?.role || "").toUpperCase();
         if (!["ADMIN", "DIRETORIA", "COORDINATOR", "TEACHER", "STAFF"].includes(role)) {
           navigate("/portal/app");
           return;
