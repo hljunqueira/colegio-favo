@@ -21,15 +21,21 @@ const PortalRedirect = () => {
   const user = getUser();
   if (!token || !user) return <Navigate to="/portal" replace />;
   
-  switch (user.role) {
+  const userRole = (user.role || "").toLowerCase();
+  switch (userRole) {
+    case "student":
     case "aluno": return <Navigate to="/portal/aluno" replace />;
+    case "parent":
     case "pais": return <Navigate to="/portal/pais" replace />;
+    case "teacher":
     case "professor": return <Navigate to="/portal/professor" replace />;
+    case "coordinator":
     case "coordenador": return <Navigate to="/portal/coordenador" replace />;
+    case "staff":
     case "funcionario": return <Navigate to="/portal/funcionario" replace />;
     case "admin": return <Navigate to="/gestao" replace />;
     case "diretoria": return <Navigate to="/gestao" replace />;
-    default: return <Navigate to="/portal/pais" replace />;
+    default: return <Navigate to="/portal" replace />;
   }
 };
 

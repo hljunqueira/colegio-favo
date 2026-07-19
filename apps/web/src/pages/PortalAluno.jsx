@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { 
   LayoutGrid, CalendarDays, GraduationCap, UtensilsCrossed, 
-  LogOut, UserCircle, Bell, ChevronRight, CheckCircle2, FileText
+  LogOut, UserCircle, Bell, ChevronRight, CheckCircle2, FileText, Loader2
 } from "lucide-react";
 import { clearSession, getUser, authHeader, getToken } from "@/lib/auth";
 import { toast } from "sonner";
