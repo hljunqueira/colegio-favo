@@ -35,22 +35,22 @@ export declare class GestaoController {
         success: boolean;
     }>;
     getTurmas(): Promise<{
+        professor: string;
         id: string;
         createdAt: Date;
         nome: string;
         serie: string;
         turno: string;
         ano: string;
-        professor: string;
     }[]>;
     createTurma(body: any): Promise<{
+        professor: string;
         id: string;
         createdAt: Date;
         nome: string;
         serie: string;
         turno: string;
         ano: string;
-        professor: string;
     }>;
     getProfessores(): Promise<{
         id: string;
@@ -71,9 +71,9 @@ export declare class GestaoController {
         roleId: string;
     }>;
     getFinanceiro(): Promise<{
+        aluno: string;
         id: string;
         createdAt: Date;
-        aluno: string;
         ref: string;
         vencimento: string;
         valor: number;

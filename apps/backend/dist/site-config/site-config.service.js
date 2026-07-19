@@ -58,6 +58,9 @@ let SiteConfigService = class SiteConfigService {
             }
         }
         if (body.items) {
+            await this.prisma.siteItem.deleteMany({
+                where: { section: "marquee" },
+            });
             for (const item of body.items) {
                 if (item.id) {
                     if (item.delete === true) {
