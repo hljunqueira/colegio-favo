@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { 
-  Globe, Info, FileText, Image as ImageIcon, Sparkles, Save, Upload, Plus, Trash2, Loader2 
+  Globe, Info, FileText, Image as ImageIcon, Sparkles, Save, Upload, Plus, Trash2, Loader2, X
 } from "lucide-react";
 import { authHeader } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
