@@ -58,6 +58,11 @@ export class SiteConfigService {
 
     // 2. Gravar/atualizar itens das seções
     if (body.items) {
+      // Limpa os itens do marquee para evitar duplicações e persistir a lista exata do frontend
+      await this.prisma.siteItem.deleteMany({
+        where: { section: "marquee" },
+      });
+
       for (const item of body.items) {
         if (item.id) {
           if (item.delete === true) {
