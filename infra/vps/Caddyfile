@@ -1,0 +1,67 @@
+{
+    email contato@escolafavodemel.com.br
+}
+
+# --- Next.js Web App ---
+escolafavodemel.com.br, www.escolafavodemel.com.br {
+    reverse_proxy app:3000
+    encode gzip
+}
+
+# --- Supabase API (Kong) ---
+api.escolafavodemel.com.br {
+    # Rota para NestJS Backend
+    handle_path /favo-api/* {
+        reverse_proxy backend:3001
+    }
+
+    # Rota padrão para Supabase Kong
+    handle {
+        reverse_proxy supabase-kong:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+        }
+    }
+
+    # Liberação total de CORS
+    header {
+        Access-Control-Allow-Origin {header.Origin}
+        Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "*"
+        Access-Control-Expose-Headers "*"
+        Access-Control-Allow-Credentials true
+        defer
+    }
+
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+}
+
+# --- Supabase Dashboard (Studio) ---
+supabase.escolafavodemel.com.br {
+    reverse_proxy supabase-studio:3000
+}
+
+# --- n8n ---
+n8n.escolafavodemel.com.br {
+    reverse_proxy n8n:5678
+}
+
+# --- Evolution API ---
+whatsapp.escolafavodemel.com.br {
+    reverse_proxy evolution:8080
+}
+
+# --- Portainer ---
+portainer.escolafavodemel.com.br {
+    reverse_proxy portainer:9000
+}
+
+# --- Uptime Kuma ---
+uptime.escolafavodemel.com.br {
+    reverse_proxy uptime-kuma:3001
+}
+
+

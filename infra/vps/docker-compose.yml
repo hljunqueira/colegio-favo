@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # --- Reverse Proxy ---
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - colegio-favo-network
+      - supabase_default
+
+  # --- n8n ---
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    environment:
+      - N8N_HOST=n8n.escolafavodemel.com.br
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.escolafavodemel.com.br/
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - colegio-favo-network
+
+  # --- Redis (Cache para Evolution API) ---
+  redis:
+    image: redis:alpine
+    restart: always
+    networks:
+      - colegio-favo-network
+
+  # --- Evolution API ---
+  evolution:
+    image: evoapicloud/evolution-api:v2.3.6
+    restart: always
+    environment:
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=https://whatsapp.escolafavodemel.com.br
+      - CORS_ORIGIN=*
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=FAVO_SECRET_TOKEN_2026
+      - MANAGER_TOKEN=FAVO_SECRET_TOKEN_2026
+      - AUTH_TOKEN=FAVO_SECRET_TOKEN_2026
+      - DEL_INSTANCE_ON_DISCONNECT=false
+      - DATABASE_ENABLED=true
+      - DATABASE_CONNECTION_URI=postgresql://favo_user:FAVO_DB_PASS_2026@db:5432/favo_infra_db?schema=public
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_CLIENT=postgresql
+      - DATABASE_SAVE_DATA_HISTORY_MESSAGES=false
+      - DATABASE_SAVE_DATA_MESSAGES=true
+      - DATABASE_SAVE_MESSAGES=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - REDIS_ENABLED=true
+      - REDIS_URI=redis://redis:6379
+      - REDIS_PREFIX=EVO
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379
+      - CACHE_REDIS_PREFIX=EVO_CACHE
+    volumes:
+      - evolution_data:/evolution/instances
+    depends_on:
+      - db
+      - redis
+    networks:
+      - colegio-favo-network
+
+  # --- Postgres (Infra DB) ---
+  db:
+    image: pgvector/pgvector:pg15
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=FAVO_DB_PASS_2026
+      - POSTGRES_USER=favo_user
+      - POSTGRES_DB=favo_infra_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - colegio-favo-network
+
+  # --- Portainer (Docker GUI) ---
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - colegio-favo-network
+
+  # --- Uptime Kuma ---
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: always
+    volumes:
+      - uptime_kuma_data:/app/data
+    networks:
+      - colegio-favo-network
+
+  # --- Next.js Web App (React SPA via Nginx) ---
+  app:
+    build:
+      context: ../../
+      dockerfile: apps/web/Dockerfile
+    restart: always
+    networks:
+      - colegio-favo-network
+
+  # --- NestJS Backend API ---
+  backend:
+    build:
+      context: ../../
+      dockerfile: apps/backend/Dockerfile
+    restart: always
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:colegio_favo_secure_db_pass_2026_XyZ!@supabase-db:5432/postgres?schema=public
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - colegio-favo-network
+      - supabase_default
+
+networks:
+  colegio-favo-network:
+    driver: bridge
+  supabase_default:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:
+  n8n_data:
+  evolution_data:
+  db_data:
+  portainer_data:
+  uptime_kuma_data:
+  uploads_data:

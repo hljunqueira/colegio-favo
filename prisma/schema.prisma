@@ -1,0 +1,93 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phone     String?  @unique
+  matricula String?  @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  users       User[]
+  permissions Permission[]
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  action      String  @unique
+  description String?
+  roles       Role[]
+}
+
+model SiteConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model SiteItem {
+  id          String   @id @default(uuid())
+  section     String   // "manifesto", "programs", "gallery", "marquee"
+  title       String?
+  description String?
+  extra       String?  // Ex: idades, spans, etc.
+  imageUrl    String?
+  order       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Lead {
+  id          String   @id @default(uuid())
+  parent_name String
+  email       String
+  phone       String
+  child_name  String?
+  program     String?
+  message     String?
+  status      String   @default("novo")
+  createdAt   DateTime @default(now())
+}
+
+model Aviso {
+  id        String   @id @default(uuid())
+  titulo    String
+  texto     String
+  categoria String
+  createdAt DateTime @default(now())
+}
+
+model Turma {
+  id         String   @id @default(uuid())
+  nome       String
+  serie      String
+  turno      String
+  ano        String
+  professor  String
+  createdAt  DateTime @default(now())
+}
+
+model Financeiro {
+  id         String   @id @default(uuid())
+  aluno      String
+  ref        String
+  vencimento String
+  valor      Float
+  status     String
+  createdAt  DateTime @default(now())
+}

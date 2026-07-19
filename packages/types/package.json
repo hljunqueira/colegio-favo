@@ -1,0 +1,13 @@
+﻿{
+    "version":  "1.0.0",
+    "name":  "@colegio-favo/types",
+    "main":  "./dist/index.js",
+    "scripts":  {
+                    "build":  "tsc"
+                },
+    "devDependencies":  {
+                            "typescript":  "^5.0.0"
+                        },
+    "types":  "./dist/index.d.ts",
+    "private":  true
+}

@@ -1,0 +1,19 @@
+﻿{
+    "include":  [
+                    "src"
+                ],
+    "compilerOptions":  {
+                            "forceConsistentCasingInFileNames":  true,
+                            "outDir":  "./dist",
+                            "lib":  [
+                                        "es2022",
+                                        "dom"
+                                    ],
+                            "declaration":  true,
+                            "strict":  true,
+                            "target":  "es2022",
+                            "esModuleInterop":  true,
+                            "skipLibCheck":  true,
+                            "module":  "commonjs"
+                        }
+}
