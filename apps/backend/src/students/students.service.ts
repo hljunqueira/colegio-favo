@@ -6,7 +6,13 @@ export class StudentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboardData(userId: string) {
-    const student = await this.prisma.aluno.findUnique({
+    const userObj = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true }
+    });
+    const isAdmin = userObj && (userObj.role?.name === 'ADMIN' || userObj.role?.name === 'DIRETORIA');
+
+    let student = await this.prisma.aluno.findUnique({
       where: { userId },
       include: {
         user: true,
@@ -18,6 +24,20 @@ export class StudentsService {
         entregas: true
       }
     });
+
+    if (!student && isAdmin) {
+      student = await this.prisma.aluno.findFirst({
+        include: {
+          user: true,
+          turma: true,
+          anamnese: true,
+          notas: true,
+          frequencias: true,
+          atestados: true,
+          entregas: true
+        }
+      });
+    }
 
     if (!student) {
       throw new NotFoundException('Perfil de aluno não encontrado.');

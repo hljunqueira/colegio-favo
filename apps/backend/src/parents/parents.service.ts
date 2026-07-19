@@ -4,9 +4,14 @@ import { PrismaService } from '../database/prisma.service';
 @Injectable()
 export class ParentsService {
   constructor(private readonly prisma: PrismaService) {}
-
   async getDashboardData(userId: string) {
-    const responsavel = await this.prisma.responsavel.findUnique({
+    const userObj = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true }
+    });
+    const isAdmin = userObj && (userObj.role?.name === 'ADMIN' || userObj.role?.name === 'DIRETORIA');
+
+    let responsavel = await this.prisma.responsavel.findUnique({
       where: { userId },
       include: {
         user: true,
@@ -22,6 +27,24 @@ export class ParentsService {
         }
       }
     });
+
+    if (!responsavel && isAdmin) {
+      responsavel = await this.prisma.responsavel.findFirst({
+        include: {
+          user: true,
+          alunos: {
+            include: {
+              user: true,
+              turma: true,
+              anamnese: true,
+              notas: true,
+              frequencias: true,
+              atestados: true
+            }
+          }
+        }
+      });
+    }
 
     if (!responsavel) {
       throw new NotFoundException('Perfil de responsável não encontrado.');
