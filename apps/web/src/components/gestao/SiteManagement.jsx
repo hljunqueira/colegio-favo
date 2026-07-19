@@ -147,8 +147,8 @@ export const SiteManagement = () => {
     setNewMarqueeWord("");
   };
 
-  const removeMarqueeWord = (word) => {
-    setMarquee(marquee.filter(w => w !== word));
+  const removeMarqueeWord = (index) => {
+    setMarquee(marquee.filter((_, idx) => idx !== index));
   };
 
   // Salvar tudo
@@ -565,15 +565,15 @@ export const SiteManagement = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-2">
-              {marquee.map((word) => (
+              {marquee.map((word, idx) => (
                 <span
-                  key={word}
+                  key={`${word}-${idx}`}
                   className="inline-flex items-center gap-1.5 bg-cream-2 border border-ink/10 text-ink font-body text-sm font-semibold px-4 py-2 rounded-full"
                 >
                   {word}
                   <button
                     type="button"
-                    onClick={() => removeMarqueeWord(word)}
+                    onClick={() => removeMarqueeWord(idx)}
                     className="text-ink-2 hover:text-red-500 transition-colors"
                   >
                     <X size={12} />
