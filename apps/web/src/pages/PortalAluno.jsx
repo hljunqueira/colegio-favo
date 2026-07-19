@@ -1,19 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { 
   LayoutGrid, CalendarDays, GraduationCap, UtensilsCrossed, 
-  LogOut, UserCircle, Bell, ChevronRight, CheckCircle2 
+  LogOut, UserCircle, Bell, ChevronRight, CheckCircle2, FileText
 } from "lucide-react";
-import { clearSession, getUser } from "@/lib/auth";
+import { clearSession, getUser, authHeader, getToken } from "@/lib/auth";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function PortalAluno() {
   const navigate = useNavigate();
-  const user = getUser() || { name: "Lucas Favo de Mel" };
+  const user = getUser() || { name: "Aluno Favo", id: "" };
+  
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
   const [view, setView] = useState("mural");
+
+  const loadDashboard = async () => {
+    try {
+      const res = await axios.get(`${API}/students/dashboard`, {
+        ...authHeader(),
+        params: { userId: user.id }
+      });
+      setData(res.data);
+      setLoading(false);
+    } catch (err) {
+      toast.error("Erro ao carregar portal do aluno.");
+      clearSession();
+      navigate("/portal");
+    }
+  };
+
+  useEffect(() => {
+    if (!getToken()) { navigate("/portal"); return; }
+    loadDashboard();
+  }, [navigate]);
+
+  const student = data?.student || null;
 
   const logout = () => {
     clearSession();
     navigate("/portal");
+  };
+
+  const exportPDF = () => {
+    window.print();
   };
 
   const menuItems = [
@@ -23,12 +57,20 @@ export default function PortalAluno() {
     { key: "cardapio", label: "Cardápio", icon: UtensilsCrossed },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream-2 flex items-center justify-center">
+        <Loader2 className="animate-spin text-amber" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream-2 flex font-body text-ink" data-testid="aluno-dashboard">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5 text-cream">
         <div className="flex items-center gap-2 mb-10 px-2">
-          <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-cream">Portal Aluno</span>
         </div>
         <nav className="flex flex-col gap-1 flex-grow">
@@ -58,20 +100,16 @@ export default function PortalAluno() {
         <header className="bg-white border-b border-ink/5 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <h2 className="font-display font-bold text-lg sm:text-xl text-ink">
-              Olá, {user.name.split(" ")[0]} 🐝
+              Olá, {student?.name?.split(" ")[0]} 🐝
             </h2>
             <span className="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full font-semibold">
               Aluno
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 text-ink-2 hover:bg-cream rounded-full transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber rounded-full" />
-            </button>
             <div className="flex items-center gap-2 border-l border-ink/10 pl-4">
               <UserCircle size={24} className="text-ink-2" />
-              <span className="text-xs font-semibold text-ink-2 hidden sm:inline">Lucas · 3º Ano</span>
+              <span className="text-xs font-semibold text-ink-2 hidden sm:inline">{student?.name} · {student?.turma}</span>
             </div>
           </div>
         </header>
@@ -88,16 +126,16 @@ export default function PortalAluno() {
                     <div>
                       <h4 className="font-display font-bold text-sm text-ink">Feira de Ciências 2026</h4>
                       <p className="font-body text-xs text-ink-2 mt-1">
-                        Lembramos a todos os alunos que os projetos para a Feira de Ciências devem ser entregues até sexta-feira!
+                        Participe das oficinas preparatórias para a Feira de Ciências que começam nesta quarta-feira na sala multimídia!
                       </p>
                     </div>
                   </div>
                   <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
                     <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">🎨</span>
                     <div>
-                      <h4 className="font-display font-bold text-sm text-ink">Oficina de Artes - Nova Escala</h4>
+                      <h4 className="font-display font-bold text-sm text-ink">Oficina de Teatro e Criatividade</h4>
                       <p className="font-body text-xs text-ink-2 mt-1">
-                        Os horários das oficinas de artes foram atualizados. Verifique sua agenda.
+                        Inscrições abertas na secretaria. Vagas limitadas para alunos do turno da tarde.
                       </p>
                     </div>
                   </div>
@@ -110,90 +148,111 @@ export default function PortalAluno() {
             <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
               <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Minha Agenda</h3>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber" />
-                    <div>
-                      <h4 className="font-body font-semibold text-sm">Prova de Matemática</h4>
-                      <p className="text-[11px] text-ink-2">Geometria e Frações</p>
+                {student?.agenda.map((e) => (
+                  <div key={e.id} className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5 hover:bg-cream-2/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${e.type === "avaliacao" ? "bg-amber" : "bg-blue-500"}`} />
+                      <div>
+                        <h4 className="font-body font-semibold text-sm">{e.title}</h4>
+                        <p className="text-[11px] text-ink-2">{e.disciplina}</p>
+                      </div>
                     </div>
+                    <span className="text-xs font-semibold text-ink-2">{new Date(e.date).toLocaleDateString('pt-BR')}</span>
                   </div>
-                  <span className="text-xs font-semibold text-ink-2">Amanhã · 08:30</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    <div>
-                      <h4 className="font-body font-semibold text-sm">Trabalho de História</h4>
-                      <p className="text-[11px] text-ink-2">Colonização do Brasil</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold text-ink-2">Sexta · 13:30</span>
-                </div>
+                ))}
+                {student?.agenda.length === 0 && (
+                  <p className="p-8 text-center text-ink-2">Nenhum compromisso agendado.</p>
+                )}
               </div>
             </div>
           )}
 
           {view === "boletim" && (
-            <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm overflow-x-auto">
-              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Boletim Escolar</h3>
-              <table className="w-full text-left border-collapse font-body text-xs">
-                <thead>
-                  <tr className="border-b border-ink/5 text-ink-2 uppercase tracking-wider font-semibold">
-                    <th className="py-3">Matéria</th>
-                    <th className="py-3">B1</th>
-                    <th className="py-3">B2</th>
-                    <th className="py-3">B3</th>
-                    <th className="py-3">B4</th>
-                    <th className="py-3">Faltas</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink/5">
-                  <tr>
-                    <td className="py-3 font-semibold">Matemática</td>
-                    <td className="py-3">8.5</td>
-                    <td className="py-3">9.0</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3 text-red-500 font-semibold">2</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 font-semibold">Português</td>
-                    <td className="py-3">9.2</td>
-                    <td className="py-3">9.5</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3">0</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 font-semibold">História</td>
-                    <td className="py-3">8.0</td>
-                    <td className="py-3">8.8</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3">—</td>
-                    <td className="py-3 text-red-500 font-semibold">1</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-extrabold text-xl text-ink">Meu Boletim Escolar</h3>
+                <button 
+                  onClick={exportPDF}
+                  className="inline-flex items-center gap-2 bg-dark text-cream hover:bg-amber hover:text-dark px-4 py-2 rounded-full font-body text-xs font-semibold transition-colors"
+                >
+                  <FileText size={14} /> Imprimir Boletim (PDF)
+                </button>
+              </div>
+
+              <div id="boletim-table-pdf" className="p-4 bg-white border border-ink/10 rounded-2xl overflow-x-auto">
+                <div className="mb-4 border-b pb-3">
+                  <h2 className="font-display font-bold text-lg text-ink">Colégio Favo de Mel</h2>
+                  <p className="font-body text-xs text-ink-2">Aluno: {student?.name} | Matrícula: {student?.matricula} | Turma: {student?.turma}</p>
+                </div>
+                <table className="w-full text-left border-collapse font-body text-xs">
+                  <thead>
+                    <tr className="border-b border-ink/5 text-ink-2 uppercase tracking-wider font-semibold">
+                      <th className="py-3">Matéria / Disciplina</th>
+                      <th className="py-3 text-center">B1</th>
+                      <th className="py-3 text-center">B2</th>
+                      <th className="py-3 text-center">B3</th>
+                      <th className="py-3 text-center">B4</th>
+                      <th className="py-3 text-center">Faltas</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-ink/5">
+                    {student?.boletim.map((b) => (
+                      <tr key={b.id} className="hover:bg-cream-2/50 transition-colors">
+                        <td className="py-3 font-semibold text-ink">{b.disciplina}</td>
+                        <td className="py-3 text-center">{b.b1 !== null ? b.b1 : "—"}</td>
+                        <td className="py-3 text-center">{b.b2 !== null ? b.b2 : "—"}</td>
+                        <td className="py-3 text-center">{b.b3 !== null ? b.b3 : "—"}</td>
+                        <td className="py-3 text-center">{b.b4 !== null ? b.b4 : "—"}</td>
+                        <td className="py-3 text-center text-red-500 font-bold">{b.faltas}</td>
+                      </tr>
+                    ))}
+                    {student?.boletim.length === 0 && (
+                      <tr><td colSpan={6} className="py-8 text-center text-ink-2">Nenhuma nota lançada.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
           {view === "cardapio" && (
             <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
-              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Cardápio do Dia</h3>
-              <div className="p-5 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
-                <span className="text-3xl">🍲</span>
-                <div>
-                  <h4 className="font-display font-bold text-base text-ink">Almoço Especial</h4>
-                  <p className="font-body text-xs text-ink-2 mt-1 leading-relaxed">
-                    Arroz integral, feijão carioca, cubos de peito de frango grelhados, salada de tomate com alface e suco natural de uva.
-                  </p>
-                </div>
+              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Cardápio da Semana</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {student?.cardapio.map((c, i) => (
+                  <div key={i} className="p-4 bg-cream rounded-2xl border border-ink/5">
+                    <p className="font-body text-xs font-semibold text-amber uppercase">{c.dia}</p>
+                    <p className="font-body text-sm text-ink mt-2 leading-relaxed">{c.refeicao}</p>
+                  </div>
+                ))}
+                {student?.cardapio.length === 0 && (
+                  <p className="p-8 text-center text-ink-2">Nenhum cardápio cadastrado.</p>
+                )}
               </div>
             </div>
           )}
         </main>
       </div>
+
+      <style>{`
+        @media print {
+          aside, header, button {
+            display: none !important;
+          }
+          main {
+            padding: 0 !important;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+          }
+          #boletim-table-pdf {
+            border: none !important;
+            box-shadow: none !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

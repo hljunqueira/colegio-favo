@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -26,18 +26,49 @@ export default function Gestao() {
     return localStorage.getItem("gestao_sidebar_collapsed") === "true";
   });
   
-  // Encontra o grupo inicial ativo
-  const initialGroup = NAV_GROUPS.find(g => g.items.some(i => i.key === view))?.label || "Visão geral";
-  const [expandedGroup, setExpandedGroup] = useState(initialGroup);
-
   const navigate = useNavigate();
   const user = getUser();
+
+  // Filtragem dinâmica do menu lateral baseado na Role do Usuário (RBAC)
+  const filteredNavGroups = useMemo(() => {
+    const role = user?.role;
+    if (!role) return [];
+    if (["ADMIN", "DIRETORIA"].includes(role)) return NAV_GROUPS;
+
+    return NAV_GROUPS.map(group => {
+      let items = group.items;
+      if (role === "COORDINATOR") {
+        if (["Administração", "Financeiro"].includes(group.label)) return null;
+        items = group.items.filter(i => !["usuarios", "site", "config"].includes(i.key));
+      } else if (role === "TEACHER") {
+        if (!["Visão geral", "Pedagógico", "Comunicação", "Biblioteca"].includes(group.label)) return null;
+        items = group.items.filter(i => ["inicio", "planoaula", "diario", "chamada", "notas", "atividades", "comunicados", "livros", "reservas"].includes(i.key));
+      } else if (role === "STAFF") {
+        if (["Pedagógico", "Administração"].includes(group.label)) return null;
+        items = group.items.filter(i => ["inicio", "alunos", "responsaveis", "funcionarios", "livros", "emprestimos", "reservas", "portaria", "saude", "financeiro"].includes(i.key));
+      }
+      return items.length > 0 ? { ...group, items } : null;
+    }).filter(Boolean);
+  }, [user]);
+
+  const filteredAllItems = useMemo(() => filteredNavGroups.flatMap(g => g.items), [filteredNavGroups]);
+
+  // Encontra o grupo inicial ativo
+  const initialGroup = useMemo(() => {
+    return filteredNavGroups.find(g => g.items.some(i => i.key === view))?.label || "Visão geral";
+  }, [filteredNavGroups, view]);
+  
+  const [expandedGroup, setExpandedGroup] = useState(initialGroup);
 
   useEffect(() => {
     if (!getToken()) { navigate("/portal"); return; }
     axios.get(`${API}/auth/me`, authHeader())
       .then((r) => {
-        if (r.data?.role !== "admin" && r.data?.role !== "diretoria") { navigate("/portal/app"); return; }
+        const role = r.data?.role;
+        if (!["ADMIN", "DIRETORIA", "COORDINATOR", "TEACHER", "STAFF"].includes(role)) {
+          navigate("/portal/app");
+          return;
+        }
         setReady(true);
       })
       .catch(() => { clearSession(); navigate("/portal"); });
@@ -50,8 +81,7 @@ export default function Gestao() {
   const go = (key) => {
     setView(key);
     setOpenNav(false);
-    // Atualiza o grupo expandido automaticamente ao mudar de view
-    const groupOfKey = NAV_GROUPS.find(g => g.items.some(i => i.key === key))?.label;
+    const groupOfKey = filteredNavGroups.find(g => g.items.some(i => i.key === key))?.label;
     if (groupOfKey) {
       setExpandedGroup(groupOfKey);
     }
@@ -71,8 +101,8 @@ export default function Gestao() {
     navigate("/portal");
   };
 
-  const active = ALL_ITEMS.find((i) => i.key === view);
-  const activeGroup = NAV_GROUPS.find((g) => g.items.some((i) => i.key === view));
+  const active = filteredAllItems.find((i) => i.key === view);
+  const activeGroup = filteredNavGroups.find((g) => g.items.some((i) => i.key === view));
 
   const getInitials = (name) => {
     if (!name) return "AD";
@@ -114,7 +144,7 @@ export default function Gestao() {
         {/* Sidebar Header */}
         <div className={`flex items-center justify-between p-5 shrink-0 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="flex items-center gap-2 overflow-hidden">
-            <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+            <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover shrink-0" />
             {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -148,7 +178,7 @@ export default function Gestao() {
           {isCollapsed ? (
             /* Flat view showing only icons of all functional pages */
             <div className="space-y-1.5 flex flex-col items-center">
-              {ALL_ITEMS.map((it) => {
+              {filteredAllItems.map((it) => {
                 const isSelected = view === it.key;
                 return (
                   <button
@@ -160,7 +190,6 @@ export default function Gestao() {
                     }`}
                   >
                     <it.icon size={20} className="shrink-0" />
-                    {/* Tooltip on hover */}
                     <span className="absolute left-full ml-3 px-2 py-1 bg-dark text-cream text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 border border-cream/10 shadow-lg">
                       {it.label} {!it.done && "⏳"}
                     </span>
@@ -170,7 +199,7 @@ export default function Gestao() {
             </div>
           ) : (
             /* Accordion view grouping categories */
-            NAV_GROUPS.map((g) => {
+            filteredNavGroups.map((g) => {
               const isExpanded = expandedGroup === g.label;
               const hasActiveChild = g.items.some(i => i.key === view);
 
@@ -178,11 +207,11 @@ export default function Gestao() {
                 <div key={g.label} className="border-b border-white/5 pb-2">
                   <button
                     onClick={() => toggleGroup(g.label)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors ${
-                      hasActiveChild ? "text-honey font-semibold" : "text-cream/40 hover:text-cream/80"
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      hasActiveChild ? "text-honey" : "text-cream/40 hover:text-cream/70"
                     }`}
                   >
-                    <span className="font-body text-[10px] tracking-[0.15em] uppercase truncate">{g.label}</span>
+                    <span>{g.label}</span>
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
 
@@ -193,7 +222,7 @@ export default function Gestao() {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="overflow-hidden space-y-0.5 mt-1 pl-1"
+                        className="overflow-hidden mt-1.5 pl-1 space-y-1"
                       >
                         {g.items.map((it) => {
                           const isSelected = view === it.key;
@@ -201,21 +230,17 @@ export default function Gestao() {
                             <button
                               key={it.key}
                               onClick={() => go(it.key)}
-                              data-testid={`gnav-${it.key}`}
-                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-body text-[13px] transition-colors ${
-                                isSelected ? "bg-honey text-dark font-semibold" : "text-cream/70 hover:bg-white/5 hover:text-cream"
+                              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-body text-sm transition-all ${
+                                isSelected
+                                  ? "bg-honey text-dark font-semibold shadow-md scale-[1.01]"
+                                  : "text-cream/70 hover:bg-white/5 hover:text-cream"
                               }`}
                             >
-                              <it.icon size={16} className="shrink-0" />
-                              <span className="truncate">{it.label}</span>
-                              {!it.done && (
-                                <span
-                                  className={`ml-auto w-1.5 h-1.5 rounded-full shrink-0 ${
-                                    isSelected ? "bg-dark/40" : "bg-honey/50"
-                                  }`}
-                                  title="Em breve"
-                                />
-                              )}
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <it.icon size={16} className="shrink-0" />
+                                <span className="truncate">{it.label}</span>
+                              </div>
+                              {!it.done && <span className="text-[10px]">⏳</span>}
                             </button>
                           );
                         })}
@@ -228,100 +253,66 @@ export default function Gestao() {
           )}
         </nav>
 
-        {/* User profile footer */}
-        <div className="p-4 border-t border-white/10 shrink-0 bg-black/20 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-honey text-dark font-display font-bold flex items-center justify-center shrink-0 shadow-inner">
-            {getInitials(user?.name)}
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-white/5 shrink-0">
+          <div className="flex items-center justify-between gap-3 overflow-hidden">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-honey text-dark flex items-center justify-center font-display font-bold shrink-0">
+                {getInitials(user?.name)}
+              </div>
+              {!isCollapsed && (
+                <div className="min-w-0">
+                  <p className="font-body text-sm font-semibold text-cream truncate">{user?.name}</p>
+                  <p className="font-body text-[10px] text-cream/50 truncate uppercase tracking-widest">{user?.role}</p>
+                </div>
+              )}
+            </div>
+            {!isCollapsed && (
+              <button
+                onClick={logout}
+                className="text-cream/50 hover:text-red-400 p-2 rounded-lg hover:bg-white/5 transition-colors shrink-0"
+                title="Sair da conta"
+              >
+                <LogOut size={16} />
+              </button>
+            )}
           </div>
-          {!isCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="min-w-0 flex-1"
-            >
-              <p className="font-body text-xs font-bold text-cream truncate leading-none mb-1">{user?.name || "Diretora Favo"}</p>
-              <p className="font-body text-[9px] text-cream/40 truncate leading-none">{user?.email || "admin@escolafavodemel.com.br"}</p>
-            </motion.div>
-          )}
         </div>
       </aside>
 
-      {openNav && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setOpenNav(false)} />}
-
       {/* Main Content Area */}
-      <div className="flex-grow min-w-0 flex flex-col">
-        {/* Header */}
-        <header className="bg-cream border-b border-ink/10 sticky top-0 z-20">
-          <div className="px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <button
-                className="lg:hidden text-ink"
-                onClick={() => setOpenNav(true)}
-                data-testid="gestao-menu-toggle"
-              >
-                <Menu />
-              </button>
-              {/* Dynamic Breadcrumbs */}
-              <div className="font-body text-sm text-ink-2 hidden sm:flex items-center gap-1.5 select-none">
-                <span>Painel</span>
-                {activeGroup && (
-                  <>
-                    <ChevronRight size={12} className="opacity-40" />
-                    <span className="opacity-60">{activeGroup.label}</span>
-                  </>
-                )}
-                {active && (
-                  <>
-                    <ChevronRight size={12} className="opacity-40" />
-                    <span className="text-ink font-semibold">{active.label}</span>
-                  </>
-                )}
-              </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Navbar */}
+        <header className="h-16 bg-cream border-b border-ink/10 flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button className="lg:hidden text-ink" onClick={() => setOpenNav(true)}>
+              <Menu size={24} />
+            </button>
+            <div className="hidden sm:flex items-center gap-2 font-body text-xs text-ink-2">
+              <span>Gestão</span>
+              <ChevronRight size={12} />
+              <span className="text-ink font-semibold">{activeGroup?.label || "Visão geral"}</span>
+              <ChevronRight size={12} />
+              <span className="text-amber font-semibold">{active?.label}</span>
             </div>
+          </div>
 
-            {/* Global Search Bar */}
-            <div className="hidden md:flex items-center gap-2 bg-cream-2 border border-ink/10 rounded-full px-3 py-1.5 w-64 focus-within:border-amber transition-colors">
-              <Search size={14} className="text-ink-2/60" />
-              <input
-                type="text"
-                placeholder="Buscar no sistema..."
-                className="bg-transparent border-0 outline-none text-xs w-full font-body text-ink placeholder:text-ink-2/50"
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <a
-                href="/"
-                target="_blank"
-                rel="noreferrer"
-                className="hidden sm:inline-flex items-center gap-1.5 font-body text-xs text-ink-2 hover:text-amber transition-colors"
-              >
-                <ExternalLink size={13} /> Ver site
-              </a>
-              <button
-                onClick={logout}
-                data-testid="gestao-logout"
-                className="inline-flex items-center gap-2 bg-dark text-cream px-4 py-2 rounded-full font-body text-xs font-semibold hover:bg-amber hover:text-dark transition-colors"
-              >
-                <LogOut size={14} /> Sair
-              </button>
-            </div>
+          <div className="flex items-center gap-4">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-1.5 font-body text-xs text-ink-2 hover:text-dark transition-colors"
+            >
+              <span>Ver site público</span>
+              <ExternalLink size={12} />
+            </a>
           </div>
         </header>
 
-        {/* View Content with Page Transition Animation */}
-        <main className="p-4 sm:p-8 max-w-6xl flex-grow overflow-x-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={view}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderView()}
-            </motion.div>
-          </AnimatePresence>
+        {/* Content View */}
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+          {renderView()}
         </main>
       </div>
     </div>

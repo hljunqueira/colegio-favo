@@ -5,13 +5,13 @@ import { GestaoService } from './gestao.service';
 export class GestaoController {
   constructor(private readonly gestaoService: GestaoService) {}
 
-  // 1. Stats
+  // 1. Stats Geral
   @Get('gestao/stats')
   async getStats() {
     return this.gestaoService.getStats();
   }
 
-  // 2. Alunos
+  // 2. Alunos CRUD
   @Get('gestao/alunos')
   async getAlunos(@Query('q') q?: string) {
     return this.gestaoService.getAlunos(q);
@@ -27,7 +27,12 @@ export class GestaoController {
     return this.gestaoService.updateAluno(id, body);
   }
 
-  // 3. Turmas
+  @Delete('gestao/alunos/:id')
+  async deleteAluno(@Param('id') id: string) {
+    return this.gestaoService.deleteAluno(id);
+  }
+
+  // 3. Turmas CRUD
   @Get('gestao/turmas')
   async getTurmas() {
     return this.gestaoService.getTurmas();
@@ -38,7 +43,17 @@ export class GestaoController {
     return this.gestaoService.createTurma(body);
   }
 
-  // 4. Professores
+  @Patch('gestao/turmas/:id')
+  async updateTurma(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateTurma(id, body);
+  }
+
+  @Delete('gestao/turmas/:id')
+  async deleteTurma(@Param('id') id: string) {
+    return this.gestaoService.deleteTurma(id);
+  }
+
+  // 4. Professores CRUD
   @Get('gestao/professores')
   async getProfessores() {
     return this.gestaoService.getProfessores();
@@ -49,25 +64,60 @@ export class GestaoController {
     return this.gestaoService.createProfessor(body);
   }
 
-  // 5. Financeiro
+  @Patch('gestao/professores/:id')
+  async updateProfessor(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateProfessor(id, body);
+  }
+
+  @Delete('gestao/professores/:id')
+  async deleteProfessor(@Param('id') id: string) {
+    return this.gestaoService.deleteProfessor(id);
+  }
+
+  // 5. Financeiro CRUD
   @Get('gestao/financeiro')
   async getFinanceiro() {
     return this.gestaoService.getFinanceiro();
   }
 
-  // 6. Responsáveis
+  @Patch('gestao/financeiro/:id')
+  async updateFinanceiro(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateFinanceiro(id, body);
+  }
+
+  @Delete('gestao/financeiro/:id')
+  async deleteFinanceiro(@Param('id') id: string) {
+    return this.gestaoService.deleteFinanceiro(id);
+  }
+
+  // 6. Responsáveis CRUD
   @Get('gestao/responsaveis')
   async getResponsaveis() {
     return this.gestaoService.getResponsaveis();
   }
 
-  // 7. Usuários
+  @Post('gestao/responsaveis')
+  async createResponsavel(@Body() body: any) {
+    return this.gestaoService.createResponsavel(body);
+  }
+
+  @Patch('gestao/responsaveis/:id')
+  async updateResponsavel(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateResponsavel(id, body);
+  }
+
+  @Delete('gestao/responsaveis/:id')
+  async deleteResponsavel(@Param('id') id: string) {
+    return this.gestaoService.deleteResponsavel(id);
+  }
+
+  // 7. Usuários do Sistema
   @Get('gestao/usuarios')
   async getUsuarios() {
     return this.gestaoService.getUsuarios();
   }
 
-  // 8. Avisos
+  // 8. Avisos / Comunicados CRUD
   @Get('avisos')
   async getAvisos() {
     return this.gestaoService.getAvisos();
@@ -83,7 +133,7 @@ export class GestaoController {
     return this.gestaoService.deleteAviso(id);
   }
 
-  // 9. Leads
+  // 9. Leads / Contatos
   @Get('admin/leads')
   async getLeads() {
     return this.gestaoService.getLeads();
@@ -97,5 +147,11 @@ export class GestaoController {
   @Patch('admin/leads/:id')
   async updateLead(@Param('id') id: string, @Body() body: any) {
     return this.gestaoService.updateLead(id, body);
+  }
+
+  // 10. Buscador Global da Barra de Navegação
+  @Get('gestao/search')
+  async searchGlobal(@Query('q') q: string) {
+    return this.gestaoService.searchGlobal(q);
   }
 }

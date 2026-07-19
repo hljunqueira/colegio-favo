@@ -1,17 +1,48 @@
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { 
   LayoutGrid, CalendarDays, GraduationCap, Wallet, 
-  LogOut, UserCircle, Bell, ShieldCheck, QrCode, Copy 
+  LogOut, UserCircle, Bell, ShieldCheck, QrCode, Copy, FileText, HeartPulse
 } from "lucide-react";
-import { clearSession, getUser } from "@/lib/auth";
+import { clearSession, getUser, authHeader, getToken } from "@/lib/auth";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const brl = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function PortalPais() {
   const navigate = useNavigate();
-  const user = getUser() || { name: "Responsável Financeiro" };
+  const user = getUser() || { name: "Responsável Financeiro", id: "" };
+  
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
   const [view, setView] = useState("mural");
-  const [selectedChild, setSelectedChild] = useState("lucas");
+  const [selectedChildIndex, setSelectedChildIndex] = useState(0);
+
+  const loadDashboard = async () => {
+    try {
+      const res = await axios.get(`${API}/parents/dashboard`, {
+        ...authHeader(),
+        params: { userId: user.id }
+      });
+      setData(res.data);
+      setLoading(false);
+    } catch (err) {
+      toast.error("Erro ao carregar dados do portal.");
+      clearSession();
+      navigate("/portal");
+    }
+  };
+
+  useEffect(() => {
+    if (!getToken()) { navigate("/portal"); return; }
+    loadDashboard();
+  }, [navigate]);
+
+  const filhos = data?.filhos || [];
+  const selectedChild = filhos[selectedChildIndex] || null;
 
   const logout = () => {
     clearSession();
@@ -23,19 +54,43 @@ export default function PortalPais() {
     toast.success("Código PIX copiado com sucesso!");
   };
 
+  // Cálculo de estatísticas de frequência do filho selecionado
+  const freqStats = useMemo(() => {
+    if (!selectedChild || !selectedChild.frequencia.length) return { rate: "100%", presencas: 0, faltas: 0 };
+    const total = selectedChild.frequencia.length;
+    const presencas = selectedChild.frequencia.filter(f => f.presente).length;
+    const faltas = total - presencas;
+    const rate = Math.round((presencas / total) * 100) + "%";
+    return { rate, presencas, faltas };
+  }, [selectedChild]);
+
+  // Exportação em PDF do Boletim via print do navegador
+  const exportPDF = () => {
+    window.print();
+  };
+
   const menuItems = [
     { key: "mural", label: "Mural", icon: LayoutGrid },
     { key: "frequencia", label: "Frequência", icon: CalendarDays },
     { key: "boletim", label: "Boletim", icon: GraduationCap },
+    { key: "anamnese", label: "Ficha de Saúde", icon: HeartPulse },
     { key: "financeiro", label: "Financeiro", icon: Wallet },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream-2 flex items-center justify-center">
+        <Loader2 className="animate-spin text-amber" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream-2 flex font-body text-ink" data-testid="pais-dashboard">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5 text-cream">
         <div className="flex items-center gap-2 mb-10 px-2">
-          <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-cream">Portal Pais</span>
         </div>
         <nav className="flex flex-col gap-1 flex-grow">
@@ -65,7 +120,7 @@ export default function PortalPais() {
         <header className="bg-white border-b border-ink/5 py-4 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <h2 className="font-display font-bold text-lg sm:text-xl text-ink">
-              Olá, {user.name.split(" ")[0]} 🐝
+              Olá, {data?.responsavel?.name?.split(" ")[0]} 🐝
             </h2>
             <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold">
               Responsável
@@ -73,211 +128,285 @@ export default function PortalPais() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Child Selector */}
-            <div className="flex items-center gap-1 bg-cream-2 border border-ink/5 rounded-full p-1 text-xs">
-              <button 
-                onClick={() => setSelectedChild("lucas")}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
-                  selectedChild === "lucas" ? "bg-honey text-dark shadow-sm" : "text-ink-2"
-                }`}
-              >
-                Lucas (3º Ano)
-              </button>
-              <button 
-                onClick={() => setSelectedChild("mario")}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
-                  selectedChild === "mario" ? "bg-honey text-dark shadow-sm" : "text-ink-2"
-                }`}
-              >
-                Mário (Infantil IV)
-              </button>
-            </div>
+            {/* Dynamic Child Selector */}
+            {filhos.length > 0 && (
+              <div className="flex items-center gap-1 bg-cream-2 border border-ink/5 rounded-full p-1 text-xs">
+                {filhos.map((filho, idx) => (
+                  <button 
+                    key={filho.id}
+                    onClick={() => setSelectedChildIndex(idx)}
+                    className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
+                      selectedChildIndex === idx ? "bg-honey text-dark shadow-sm" : "text-ink-2"
+                    }`}
+                  >
+                    {filho.name.split(" ")[0]} ({filho.turma})
+                  </button>
+                ))}
+              </div>
+            )}
             
-            <button className="p-2 text-ink-2 hover:bg-cream rounded-full transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber rounded-full" />
-            </button>
             <div className="flex items-center gap-2 border-l border-ink/10 pl-4">
               <UserCircle size={24} className="text-ink-2" />
-              <span className="text-xs font-semibold text-ink-2 hidden sm:inline">{user.email}</span>
+              <span className="text-xs font-semibold text-ink-2 hidden sm:inline">{data?.responsavel?.email}</span>
             </div>
           </div>
         </header>
 
         {/* Content Box */}
         <main className="p-6 sm:p-8 flex-grow">
-          {view === "mural" && (
-            <div className="space-y-6">
-              <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
-                <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Mural de Avisos - {selectedChild === "lucas" ? "Lucas" : "Mário"}</h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
-                    <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">📢</span>
-                    <div>
-                      <h4 className="font-display font-bold text-sm text-ink">Rematrícula Escolar 2027</h4>
-                      <p className="font-body text-xs text-ink-2 mt-1">
-                        Prezados responsáveis, o prazo para garantir a vaga de seu filho com desconto especial encerra no próximo dia 30.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
-                    <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">🩺</span>
-                    <div>
-                      <h4 className="font-display font-bold text-sm text-ink">Campanha de Vacinação e Saúde</h4>
-                      <p className="font-body text-xs text-ink-2 mt-1">
-                        A equipe de saúde da prefeitura fará uma visita para conferência de carteiras de vacina na quarta-feira.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {filhos.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 border border-ink/5 text-center">
+              <p className="font-body text-ink-2">Nenhum aluno está vinculado ao seu CPF no momento. Entre em contato com a secretaria.</p>
             </div>
-          )}
-
-          {view === "frequencia" && (
-            <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
-              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Registro de Frequência</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                  <p className="text-xs text-emerald-800 font-semibold uppercase">Presenças</p>
-                  <p className="text-3xl font-extrabold text-emerald-950 mt-1">94%</p>
-                </div>
-                <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-                  <p className="text-xs text-amber-800 font-semibold uppercase">Faltas Justificadas</p>
-                  <p className="text-3xl font-extrabold text-amber-950 mt-1">3</p>
-                </div>
-                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl">
-                  <p className="text-xs text-red-800 font-semibold uppercase">Faltas não justificadas</p>
-                  <p className="text-3xl font-extrabold text-red-950 mt-1">2</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {view === "boletim" && (
-            <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm overflow-x-auto">
-              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Boletim Escolar de {selectedChild === "lucas" ? "Lucas" : "Mário"}</h3>
-              <table className="w-full text-left border-collapse font-body text-xs">
-                <thead>
-                  <tr className="border-b border-ink/5 text-ink-2 uppercase tracking-wider font-semibold">
-                    <th className="py-3">Matéria</th>
-                    <th className="py-3">B1</th>
-                    <th className="py-3">B2</th>
-                    <th className="py-3">B3</th>
-                    <th className="py-3">B4</th>
-                    <th className="py-3">Média</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink/5">
-                  {selectedChild === "lucas" ? (
-                    <>
-                      <tr>
-                        <td className="py-3 font-semibold">Matemática</td>
-                        <td className="py-3">8.5</td>
-                        <td className="py-3">9.0</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3 text-emerald-600 font-semibold">8.75</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 font-semibold">Português</td>
-                        <td className="py-3">9.2</td>
-                        <td className="py-3">9.5</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3 text-emerald-600 font-semibold">9.35</td>
-                      </tr>
-                    </>
-                  ) : (
-                    <>
-                      <tr>
-                        <td className="py-3 font-semibold">Coord. Motora</td>
-                        <td className="py-3">Excelente</td>
-                        <td className="py-3">Excelente</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3 text-emerald-600 font-semibold">Apto</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 font-semibold">Socialização</td>
-                        <td className="py-3">Bom</td>
-                        <td className="py-3">Excelente</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3">—</td>
-                        <td className="py-3 text-emerald-600 font-semibold">Apto</td>
-                      </tr>
-                    </>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {view === "financeiro" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Invoice List */}
-              <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm lg:col-span-2">
-                <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Mensalidades</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5">
-                    <div>
-                      <p className="font-body font-bold text-sm">Matrícula Escolar Ref. 07/2026</p>
-                      <p className="text-[11px] text-emerald-600 font-semibold">Vencimento: 10/07/2026</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-display font-extrabold text-sm text-ink">R$ 850,00</p>
-                      <span className="inline-block bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-0.5 rounded-full font-semibold mt-1">
-                        Pago
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5">
-                    <div>
-                      <p className="font-body font-bold text-sm">Mensalidade Escolar Ref. 08/2026</p>
-                      <p className="text-[11px] text-amber-600 font-semibold">Vencimento: 10/08/2026</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-display font-extrabold text-sm text-ink">R$ 850,00</p>
-                      <span className="inline-block bg-amber-100 text-amber-800 text-[10px] px-2.5 py-0.5 rounded-full font-semibold mt-1">
-                        Aberto
-                      </span>
+          ) : (
+            <>
+              {view === "mural" && (
+                <div className="space-y-6">
+                  <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
+                    <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Mural de Avisos - {selectedChild?.name}</h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
+                        <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">📢</span>
+                        <div>
+                          <h4 className="font-display font-bold text-sm text-ink">Matrículas Escolares de Outros Semestres</h4>
+                          <p className="font-body text-xs text-ink-2 mt-1">
+                            Acompanhe as atualizações acadêmicas do {selectedChild?.name} diretamente pelo painel correspondente de Boletim e Notas.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
+                        <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">🩺</span>
+                        <div>
+                          <h4 className="font-display font-bold text-sm text-ink">Cardápio do Refeitório</h4>
+                          <p className="font-body text-xs text-ink-2 mt-1">
+                            Lembramos aos pais de atualizarem a Ficha de Saúde de alergias de seus filhos na secretaria para adequação do cardápio semanal.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* PIX Payment Panel */}
-              <div className="bg-[#1b2b22] text-cream rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-honey mb-4">
-                    <QrCode size={20} />
+              {view === "frequencia" && (
+                <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
+                  <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Registro de Frequência - {selectedChild?.name}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                      <p className="text-xs text-emerald-800 font-semibold uppercase">Frequência Geral</p>
+                      <p className="text-3xl font-extrabold text-emerald-950 mt-1">{freqStats.rate}</p>
+                    </div>
+                    <div className="p-4 bg-honey/10 border border-honey/20 rounded-2xl">
+                      <p className="text-xs text-amber-800 font-semibold uppercase">Presenças Contabilizadas</p>
+                      <p className="text-3xl font-extrabold text-amber-950 mt-1">{freqStats.presencas}</p>
+                    </div>
+                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl">
+                      <p className="text-xs text-red-800 font-semibold uppercase">Faltas Registradas</p>
+                      <p className="text-3xl font-extrabold text-red-950 mt-1">{freqStats.faltas}</p>
+                    </div>
                   </div>
-                  <h4 className="font-display font-bold text-lg mb-2">Pagar com Pix</h4>
-                  <p className="font-body text-xs text-cream/70 leading-relaxed mb-6">
-                    Acesse a mensalidade de Agosto rapidamente gerando o Pix copia-e-cola abaixo.
-                  </p>
-                  
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-cream/60 truncate pr-4">
-                      00020101021226850014br.gov.bcb.pix2563https://pix.escolafavodemel.com.br...
-                    </span>
+
+                  <div className="border border-ink/5 rounded-2xl overflow-hidden mt-6">
+                    <table className="w-full text-left font-body text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-cream border-b border-ink/5 text-ink-2 font-semibold">
+                          <th className="p-4">Data da Chamada</th>
+                          <th className="p-4">Status de Presença</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-ink/5">
+                        {selectedChild?.frequencia.map(f => (
+                          <tr key={f.id} className="hover:bg-cream-2/50 transition-colors">
+                            <td className="p-4">{new Date(f.data).toLocaleDateString('pt-BR')}</td>
+                            <td className="p-4">
+                              <Badge className={f.presente ? "bg-emerald-100 text-emerald-800 font-body" : "bg-red-100 text-red-800 font-body"}>
+                                {f.presente ? "Presente" : "Falta"}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                        {selectedChild?.frequencia.length === 0 && (
+                          <tr><td colSpan={2} className="p-8 text-center text-ink-2">Nenhum registro de chamada lançado para este aluno.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {view === "boletim" && (
+                <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display font-extrabold text-xl text-ink">Boletim Escolar de {selectedChild?.name}</h3>
                     <button 
-                      onClick={copyPix}
-                      className="p-2 bg-honey text-dark rounded-lg hover:bg-honey/80 transition-colors shrink-0"
+                      onClick={exportPDF}
+                      className="inline-flex items-center gap-2 bg-dark text-cream hover:bg-amber hover:text-dark px-4 py-2 rounded-full font-body text-xs font-semibold transition-colors"
                     >
-                      <Copy size={14} />
+                      <FileText size={14} /> Exportar Boletim (PDF)
                     </button>
                   </div>
+                  
+                  <div id="boletim-table-pdf" className="p-4 bg-white border border-ink/10 rounded-2xl overflow-x-auto">
+                    <div className="mb-4 border-b pb-3">
+                      <h2 className="font-display font-bold text-lg text-ink">Colégio Favo de Mel</h2>
+                      <p className="font-body text-xs text-ink-2">Aluno: {selectedChild?.name} | Matrícula: {selectedChild?.matricula} | Turma: {selectedChild?.turma}</p>
+                    </div>
+                    <table className="w-full text-left border-collapse font-body text-xs">
+                      <thead>
+                        <tr className="border-b border-ink/5 text-ink-2 uppercase tracking-wider font-semibold">
+                          <th className="py-3">Matéria / Disciplina</th>
+                          <th className="py-3">Prova 1</th>
+                          <th className="py-3">Prova 2</th>
+                          <th className="py-3">Trabalho</th>
+                          <th className="py-3">Média Trimestral</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-ink/5">
+                        {selectedChild?.boletim.map((n) => (
+                          <tr key={n.id} className="hover:bg-cream-2/50 transition-colors">
+                            <td className="py-3 font-semibold">{n.disciplina}</td>
+                            <td className="py-3">{n.p1 !== null ? n.p1 : "—"}</td>
+                            <td className="py-3">{n.p2 !== null ? n.p2 : "—"}</td>
+                            <td className="py-3">{n.trabalho !== null ? n.trabalho : "—"}</td>
+                            <td className={`py-3 font-bold ${n.mediaFinal >= 7.0 ? "text-emerald-600" : "text-amber"}`}>
+                              {n.mediaFinal !== null ? n.mediaFinal : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                        {selectedChild?.boletim.length === 0 && (
+                          <tr><td colSpan={5} className="py-8 text-center text-ink-2">Nenhuma nota lançada neste período.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                
-                <div className="mt-8 pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-cream/50">
-                  <ShieldCheck size={12} className="text-honey" /> Pagamento com baixa instantânea
+              )}
+
+              {view === "anamnese" && (
+                <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
+                  <h3 className="font-display font-extrabold text-xl mb-4 text-ink flex items-center gap-2">
+                    <HeartPulse className="text-red-500 animate-pulse" /> Ficha de Saúde (Anamnese) - {selectedChild?.name}
+                  </h3>
+                  
+                  {selectedChild?.anamnese ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-body text-sm">
+                      <div className="space-y-4 bg-cream p-5 rounded-2xl border border-ink/5">
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Restrições Alimentares</p>
+                          <p className="text-ink font-bold mt-1">{selectedChild.anamnese.restricoesAlimentares || "Nenhuma restrição declarada."}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Alergias Conocidas</p>
+                          <p className="text-ink font-bold mt-1">{selectedChild.anamnese.alergias || "Nenhuma alergia declarada."}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Medicamentos de Uso Contínuo</p>
+                          <p className="text-ink font-bold mt-1">{selectedChild.anamnese.medicamentosContinuos || "Nenhum medicamento contínuo."}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 bg-cream p-5 rounded-2xl border border-ink/5">
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Tipo Sanguíneo</p>
+                          <p className="text-red-600 font-extrabold text-lg mt-1">{selectedChild.anamnese.tipoSanguineo || "Não informado."}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Contato de Emergência</p>
+                          <p className="text-ink font-bold mt-1">{selectedChild.anamnese.contatoEmergencia}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-ink-2 font-semibold">Observações Médicas</p>
+                          <p className="text-ink font-bold mt-1">{selectedChild.anamnese.observacoesMedicas || "Nenhuma observação."}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="p-8 text-center text-ink-2">Nenhuma ficha de anamnese cadastrada para este aluno.</p>
+                  )}
                 </div>
-              </div>
-            </div>
+              )}
+
+              {view === "financeiro" && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Invoice List */}
+                  <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm lg:col-span-2">
+                    <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Mensalidades - {selectedChild?.name}</h3>
+                    <div className="space-y-4">
+                      {selectedChild?.financeiro.map((f) => (
+                        <div key={f.id} className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5">
+                          <div>
+                            <p className="font-body font-bold text-sm">Mensalidade Escolar Ref. {f.ref}</p>
+                            <p className={`text-[11px] font-semibold ${f.status === "pago" ? "text-emerald-600" : "text-amber"}`}>
+                              Vencimento: {f.vencimento}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-display font-extrabold text-sm text-ink">{brl(f.valor)}</p>
+                            <Badge className={f.status === "pago" ? "bg-emerald-100 text-emerald-800 font-body mt-1" : "bg-amber/10 text-amber font-body mt-1"}>
+                              {f.status === "pago" ? "Pago" : "Aberto"}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      {selectedChild?.financeiro.length === 0 && (
+                        <p className="p-8 text-center text-ink-2">Nenhum registro de mensalidade ativo.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* PIX Payment Panel */}
+                  <div className="bg-[#1b2b22] text-cream rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-honey mb-4">
+                        <QrCode size={20} />
+                      </div>
+                      <h4 className="font-display font-bold text-lg mb-2">Pagar com Pix</h4>
+                      <p className="font-body text-xs text-cream/70 leading-relaxed mb-6">
+                        Acesse a mensalidade do {selectedChild?.name} rapidamente copiando a chave Pix copia-e-cola abaixo.
+                      </p>
+                      
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                        <span className="font-mono text-[10px] text-cream/60 truncate pr-4">
+                          00020101021226850014br.gov.bcb.pix2563https://pix.escolafavodemel.com.br...
+                        </span>
+                        <button 
+                          onClick={copyPix}
+                          className="p-2 bg-honey text-dark rounded-lg hover:bg-honey/80 transition-colors shrink-0"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-cream/50">
+                      <ShieldCheck size={12} className="text-honey" /> Pagamento com baixa instantânea
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>
+      <style>{`
+        @media print {
+          aside, header, button, .bg-honey {
+            display: none !important;
+          }
+          main {
+            padding: 0 !important;
+          }
+          body, .min-h-screen {
+            background: white !important;
+            color: black !important;
+          }
+          #boletim-table-pdf {
+            border: none !important;
+            box-shadow: none !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

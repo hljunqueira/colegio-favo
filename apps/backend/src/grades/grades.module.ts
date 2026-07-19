@@ -1,8 +1,10 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { GradesController } from './grades.controller';
 import { GradesService } from './grades.service';
+import { DatabaseModule } from '../database/database.module';
 
 @Module({
+  imports: [DatabaseModule],
   controllers: [GradesController],
   providers: [GradesService],
   exports: [GradesService],

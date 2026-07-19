@@ -81,26 +81,32 @@ async function main() {
     },
   ];
 
+  const userMap: Record<string, string> = {};
+
   for (const u of users) {
     const roleId = roleMap[u.roleName];
+    let createdUser;
     if (u.email) {
-      await prisma.user.upsert({
+      createdUser = await prisma.user.upsert({
         where: { email: u.email },
         update: { name: u.name, password: u.password, roleId },
         create: { email: u.email, name: u.name, password: u.password, roleId },
       });
+      userMap[u.email] = createdUser.id;
     } else if (u.matricula) {
-      await prisma.user.upsert({
+      createdUser = await prisma.user.upsert({
         where: { matricula: u.matricula },
         update: { name: u.name, password: u.password, roleId },
         create: { matricula: u.matricula, name: u.name, password: u.password, roleId },
       });
+      userMap[u.matricula] = createdUser.id;
     } else if (u.phone) {
-      await prisma.user.upsert({
+      createdUser = await prisma.user.upsert({
         where: { phone: u.phone },
         update: { name: u.name, password: u.password, roleId },
         create: { phone: u.phone, name: u.name, password: u.password, roleId },
       });
+      userMap[u.phone] = createdUser.id;
     }
     console.log(`Usuário ${u.name} (${u.roleName}) processado.`);
   }
@@ -109,6 +115,26 @@ async function main() {
   console.log('Seeding CMS do site e tabelas dinâmicas...');
 
   // Limpar tabelas dinâmicas para evitar duplicidades
+  await prisma.fichaAnamnese.deleteMany();
+  await prisma.preferenciasNotificacao.deleteMany();
+  await prisma.logAcesso.deleteMany();
+  await prisma.atestado.deleteMany();
+  await prisma.entregaAtividade.deleteMany();
+  await prisma.atividade.deleteMany();
+  await prisma.reservaLivro.deleteMany();
+  await prisma.livro.deleteMany();
+  await prisma.reuniao.deleteMany();
+  await prisma.nota.deleteMany();
+  await prisma.frequencia.deleteMany();
+  await prisma.planoAula.deleteMany();
+  await prisma.aluno.deleteMany();
+  await prisma.professor.deleteMany();
+  await prisma.responsavel.deleteMany();
+  await prisma.funcionario.deleteMany();
+  await prisma.gradeHoraria.deleteMany();
+  await prisma.agendaEvento.deleteMany();
+  await prisma.cardapio.deleteMany();
+
   await prisma.siteConfig.deleteMany();
   await prisma.siteItem.deleteMany();
   await prisma.aviso.deleteMany();
@@ -138,23 +164,23 @@ async function main() {
   const manifestoItems = [
     {
       section: 'manifesto',
-      title: 'Acolher',
-      description: 'Cada criança chega ao Favo de Mel com uma história única. Nosso primeiro compromisso é acolher — criar um lugar onde ela se sinta segura, amada e pertencente.',
-      extra: '01',
+      title: 'Acolhimento afetivo',
+      description: 'Entendemos que o aprendizado significativo floresce em um ambiente onde a criança se sente segura, amada e valorizada em sua singularidade.',
+      imageUrl: '/logo-favo-oficial.png',
       order: 1,
     },
     {
       section: 'manifesto',
-      title: 'Brincar',
-      description: 'Brincar é coisa séria. É brincando que a criança pensa, cria, resolve e se relaciona. Nossa pedagogia coloca o brincar no centro de cada dia.',
-      extra: '02',
+      title: 'Protagonismo infantil',
+      description: 'Aqui, a criança não é mera espectadora. Ela investiga, questiona e constrói conhecimento ativamente através de projetos e brincadeiras mediadas.',
+      imageUrl: '/logo-favo-oficial.png',
       order: 2,
     },
     {
       section: 'manifesto',
-      title: 'Florescer',
-      description: 'Como abelhas em um favo, cada pequeno gesto constrói algo maior. Cultivamos autonomia, afeto e curiosidade para que cada criança floresça no seu tempo.',
-      extra: '03',
+      title: 'Parceria com as famílias',
+      description: 'Acreditamos que a educação se faz na estreita colaboração e diálogo transparente entre escola e lar, caminhando juntos no desenvolvimento integral.',
+      imageUrl: '/logo-favo-oficial.png',
       order: 3,
     },
   ];
@@ -163,39 +189,31 @@ async function main() {
     await prisma.siteItem.create({ data: item });
   }
 
-  // Itens de Programas (Segmentos)
+  // Itens de Segmentos (Nossas Etapas)
   const programItems = [
     {
       section: 'programs',
-      title: 'Berçário & Maternal',
-      description: 'Um ninho seguro e afetuoso. Estimulação sensorial, cuidado e rotina com carinho e atenção individual a cada bebê.',
-      extra: '4 meses — 3 anos',
+      title: 'Berçário Sentidos',
+      description: 'Estimulação sensorial precoce, rotina acolhedora e cuidados individualizados com equipe altamente qualificada.',
+      extra: '4 meses a 1 ano',
       imageUrl: '/logo-favo-oficial.png',
       order: 1,
     },
     {
       section: 'programs',
       title: 'Educação Infantil',
-      description: 'A descoberta do mundo pelo brincar. Linguagem, movimento e as primeiras amizades em um ambiente lúdico e acolhedor.',
-      extra: '4 — 5 anos',
+      description: 'O brincar como eixo estruturante, investigações, artes, musicalização e socialização saudável.',
+      extra: '2 a 5 anos',
       imageUrl: '/logo-favo-oficial.png',
       order: 2,
     },
     {
       section: 'programs',
-      title: 'Fundamental I',
-      description: 'A base do conhecimento com afeto. Letramento, raciocínio lógico e autonomia, respeitando o tempo de cada criança.',
+      title: 'Ensino Fundamental I',
+      description: 'Alfabetização lúdica, letramento matemático, projetos científicos e desenvolvimento da autonomia.',
       extra: '1º ao 5º ano',
       imageUrl: '/logo-favo-oficial.png',
       order: 3,
-    },
-    {
-      section: 'programs',
-      title: 'Fundamental II',
-      description: 'Pensamento crítico e protagonismo. Preparamos jovens curiosos, responsáveis e prontos para os próximos desafios.',
-      extra: '6º ao 9º ano',
-      imageUrl: '/logo-favo-oficial.png',
-      order: 4,
     },
   ];
 
@@ -239,8 +257,11 @@ async function main() {
     { nome: '3º Ano - C', serie: 'Fundamental I', turno: 'Matutino', ano: '2026', professor: 'Professora Julia' },
   ];
 
+  const createdTurmas: Record<string, string> = {};
+
   for (const t of initialTurmas) {
-    await prisma.turma.create({ data: t });
+    const turmaObj = await prisma.turma.create({ data: t });
+    createdTurmas[t.nome] = turmaObj.id;
   }
 
   // Seeding inicial de Financeiro
@@ -264,8 +285,117 @@ async function main() {
     await prisma.aviso.create({ data: a });
   }
 
-  console.log('Seeding de CMS e tabelas reais concluído!');
+  // ==========================================
+  // SEED DE PERFIS E RELACIONAMENTOS REAIS
+  // ==========================================
+  console.log('Seeding de Perfis, Notas, Anamnese e Biblioteca...');
 
+  // 1. Responsável
+  const respId = userMap['11999999999'];
+  const responsavel = await prisma.responsavel.create({
+    data: {
+      userId: respId,
+      cpf: '123.456.789-00',
+      telefone: '11999999999',
+      enderecoLogradouro: 'Rua das Flores',
+      enderecoNumero: '123',
+      enderecoBairro: 'Centro',
+      enderecoCidade: 'Balneário Arroio do Silva',
+      enderecoEstado: 'SC',
+      enderecoCep: '88914-000',
+      financeiroPrincipal: true,
+    }
+  });
+
+  // 2. Aluno
+  const alunoId = userMap['2026001'];
+  const turmaId = createdTurmas['3º Ano - C'];
+  const aluno = await prisma.aluno.create({
+    data: {
+      userId: alunoId,
+      matricula: '2026001',
+      responsavelId: responsavel.id,
+      turmaId: turmaId,
+      status: 'ativo',
+    }
+  });
+
+  // 3. Ficha Anamnese
+  await prisma.fichaAnamnese.create({
+    data: {
+      alunoId: aluno.id,
+      restricoesAlimentares: 'Intolerância a lactose leve',
+      alergias: 'Alergia a poeira e pólen',
+      medicamentosContinuos: 'Nenhum',
+      tipoSanguineo: 'O+',
+      contatoEmergencia: 'Mariana (Mãe) - 11999999999',
+      observacoesMedicas: 'Usar bombinha de asma se necessário',
+    }
+  });
+
+  // 4. Professor
+  const profUserId = userMap['professor@escolafavodemel.com.br'];
+  const professor = await prisma.professor.create({
+    data: {
+      userId: profUserId,
+      telefone: '48999999998',
+      disciplina: 'Polivalente',
+    }
+  });
+
+  // 5. Funcionário
+  const staffUserId = userMap['funcionario@escolafavodemel.com.br'];
+  await prisma.funcionario.create({
+    data: {
+      userId: staffUserId,
+      setor: 'secretaria',
+      telefone: '48999999997',
+    }
+  });
+
+  // 6. Notas de Pedro
+  await prisma.nota.createMany({
+    data: [
+      { alunoId: aluno.id, disciplina: 'Matemática', p1: 8.5, p2: 9.0, trabalho: 9.5, mediaFinal: 9.0, trimestre: 1, anoLetivo: '2026' },
+      { alunoId: aluno.id, disciplina: 'Português', p1: 7.0, p2: 8.0, trabalho: 8.5, mediaFinal: 7.8, trimestre: 1, anoLetivo: '2026' },
+      { alunoId: aluno.id, disciplina: 'Matemática', p1: 9.0, p2: 8.5, trabalho: 9.0, mediaFinal: 8.8, trimestre: 2, anoLetivo: '2026' },
+    ]
+  });
+
+  // 7. Frequência de Pedro
+  await prisma.frequencia.createMany({
+    data: [
+      { alunoId: aluno.id, turmaId: turmaId, data: new Date('2026-07-15T08:00:00Z'), presente: true },
+      { alunoId: aluno.id, turmaId: turmaId, data: new Date('2026-07-16T08:00:00Z'), presente: true },
+      { alunoId: aluno.id, turmaId: turmaId, data: new Date('2026-07-17T08:00:00Z'), presente: false },
+    ]
+  });
+
+  // 8. Cardápio inicial
+  await prisma.cardapio.createMany({
+    data: [
+      { data: new Date('2026-07-20T00:00:00Z'), refeicao: 'Arroz, feijão, frango grelhado e salada verde', lanche: 'Salada de frutas com aveia' },
+      { data: new Date('2026-07-21T00:00:00Z'), refeicao: 'Macarronada ao sugo, carne moída e brócolis', lanche: 'Bolo de cenoura integral e suco' },
+    ]
+  });
+
+  // 9. Livros na Biblioteca
+  await prisma.livro.createMany({
+    data: [
+      { titulo: 'O Pequeno Príncipe', autor: 'Antoine de Saint-Exupéry', isbn: '9788522031412', localizacao: 'Prateleira A1', quantidade: 3, capaUrl: '' },
+      { titulo: 'Dom Casmurro', autor: 'Machado de Assis', isbn: '9788594318626', localizacao: 'Prateleira B3', quantidade: 2, capaUrl: '' },
+    ]
+  });
+
+  // 10. Preferências de Notificação padrão
+  await prisma.preferenciasNotificacao.createMany({
+    data: [
+      { userId: respId, receberEmail: true, receberWhatsapp: true },
+      { userId: alunoId, receberEmail: false, receberWhatsapp: false },
+    ]
+  });
+
+  console.log('Seeding de CMS e tabelas reais concluído!');
   console.log('Seeding finalizado com sucesso!');
 }
 
