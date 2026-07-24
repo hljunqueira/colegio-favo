@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,15 +6,18 @@ import {
   ChevronDown, ChevronUp, Search, ChevronRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { NAV_GROUPS, ALL_ITEMS } from "@/lib/gestaoNav";
 import { getToken, getUser, clearSession, authHeader } from "@/lib/auth";
 import { Scaffold } from "@/components/gestao/Scaffold";
 import { Inicio } from "@/components/gestao/Inicio";
-import { Alunos } from "@/components/gestao/Alunos";
-import { Turmas, Professores } from "@/components/gestao/CrudLists";
-import { Comunicados, Contatos } from "@/components/gestao/Comms";
-import { Financeiro, Responsaveis, Usuarios } from "@/components/gestao/ReadLists";
-import { SiteManagement } from "@/components/gestao/SiteManagement";
+import { Secretaria } from "@/components/gestao/SecretariaModules";
+import { Pedagogico } from "@/components/gestao/PedagogicoModules";
+import { Comunicacao } from "@/components/gestao/Comms";
+import { FinanceiroGeral } from "@/components/gestao/FinanceiroModules";
+import { Biblioteca } from "@/components/gestao/BibliotecaModules";
+import { PortariaSaude } from "@/components/gestao/PortariaSaudeModules";
+import { Administracao } from "@/components/gestao/AdminModules";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,6 +31,35 @@ export default function Gestao() {
   
   const navigate = useNavigate();
   const user = getUser();
+  const fileInputRef = useRef(null);
+  const [userAvatar, setUserAvatar] = useState(() => localStorage.getItem(`avatar_${user?.id}`) || "");
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await axios.post(`${API}/site-config/upload`, formData, {
+        headers: {
+          ...authHeader().headers,
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      if (res.data?.url) {
+        const fullUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url.replace('/favo-api', '')}`;
+        localStorage.setItem(`avatar_${user?.id}`, fullUrl);
+        setUserAvatar(fullUrl);
+        toast.success("Foto de perfil atualizada!");
+      }
+    } catch {
+      toast.error("Erro ao fazer upload da foto.");
+    }
+  };
 
   // Filtragem dinâmica do menu lateral baseado na Role do Usuário (RBAC)
   const filteredNavGroups = useMemo(() => {
@@ -35,18 +67,13 @@ export default function Gestao() {
     if (!role) return [];
     if (["ADMIN", "DIRETORIA"].includes(role)) return NAV_GROUPS;
 
+    const userPerms = user?.permissions || [];
+
     return NAV_GROUPS.map(group => {
-      let items = group.items;
-      if (role === "COORDINATOR") {
-        if (["Administração", "Financeiro"].includes(group.label)) return null;
-        items = group.items.filter(i => !["usuarios", "site", "config"].includes(i.key));
-      } else if (role === "TEACHER") {
-        if (!["Visão geral", "Pedagógico", "Comunicação", "Biblioteca"].includes(group.label)) return null;
-        items = group.items.filter(i => ["inicio", "planoaula", "diario", "chamada", "notas", "atividades", "comunicados", "livros", "reservas"].includes(i.key));
-      } else if (role === "STAFF") {
-        if (["Pedagógico", "Administração"].includes(group.label)) return null;
-        items = group.items.filter(i => ["inicio", "alunos", "responsaveis", "funcionarios", "livros", "emprestimos", "reservas", "portaria", "saude", "financeiro"].includes(i.key));
-      }
+      const items = group.items.filter(item => {
+        if (item.key === "inicio") return true;
+        return userPerms.includes(`view:${item.key}`);
+      });
       return items.length > 0 ? { ...group, items } : null;
     }).filter(Boolean);
   }, [user]);
@@ -69,6 +96,8 @@ export default function Gestao() {
           navigate("/portal/app");
           return;
         }
+        // Atualiza os dados do usuário com as permissões mais recentes
+        localStorage.setItem("user", JSON.stringify(r.data));
         setReady(true);
       })
       .catch(() => { clearSession(); navigate("/portal"); });
@@ -112,15 +141,13 @@ export default function Gestao() {
   const renderView = () => {
     switch (view) {
       case "inicio": return <Inicio go={go} />;
-      case "alunos": return <Alunos />;
-      case "turmas": return <Turmas />;
-      case "professores": return <Professores />;
-      case "responsaveis": return <Responsaveis />;
-      case "comunicados": return <Comunicados />;
-      case "contatos": return <Contatos />;
-      case "financeiro": return <Financeiro />;
-      case "usuarios": return <Usuarios />;
-      case "site": return <SiteManagement />;
+      case "secretaria": return <Secretaria />;
+      case "pedagogico": return <Pedagogico />;
+      case "comunicacao": return <Comunicacao />;
+      case "financeiro": return <FinanceiroGeral />;
+      case "biblioteca": return <Biblioteca />;
+      case "portaria_saude": return <PortariaSaude />;
+      case "administracao": return <Administracao />;
       default: return <Scaffold item={active} />;
     }
   };
@@ -144,7 +171,7 @@ export default function Gestao() {
         {/* Sidebar Header */}
         <div className={`flex items-center justify-between p-5 shrink-0 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="flex items-center gap-2 overflow-hidden">
-            <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+            <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover shrink-0" />
             {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -255,28 +282,16 @@ export default function Gestao() {
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-white/5 shrink-0">
-          <div className="flex items-center justify-between gap-3 overflow-hidden">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-honey text-dark flex items-center justify-center font-display font-bold shrink-0">
-                {getInitials(user?.name)}
-              </div>
-              {!isCollapsed && (
-                <div className="min-w-0">
-                  <p className="font-body text-sm font-semibold text-cream truncate">{user?.name}</p>
-                  <p className="font-body text-[10px] text-cream/50 truncate uppercase tracking-widest">{user?.role}</p>
-                </div>
-              )}
-            </div>
-            {!isCollapsed && (
-              <button
-                onClick={logout}
-                className="text-cream/50 hover:text-red-400 p-2 rounded-lg hover:bg-white/5 transition-colors shrink-0"
-                title="Sair da conta"
-              >
-                <LogOut size={16} />
-              </button>
-            )}
-          </div>
+          <button
+            onClick={logout}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-all ${
+              isCollapsed ? "justify-center" : ""
+            }`}
+            title="Sair da conta"
+          >
+            <LogOut size={18} />
+            {!isCollapsed && <span className="font-body font-semibold">Sair</span>}
+          </button>
         </div>
       </aside>
 
@@ -288,25 +303,42 @@ export default function Gestao() {
             <button className="lg:hidden text-ink" onClick={() => setOpenNav(true)}>
               <Menu size={24} />
             </button>
-            <div className="hidden sm:flex items-center gap-2 font-body text-xs text-ink-2">
-              <span>Gestão</span>
-              <ChevronRight size={12} />
-              <span className="text-ink font-semibold">{activeGroup?.label || "Visão geral"}</span>
-              <ChevronRight size={12} />
-              <span className="text-amber font-semibold">{active?.label}</span>
+            <div className="hidden sm:flex items-center gap-3">
+              <span className="font-display font-extrabold text-xl text-ink tracking-tight">{active?.label}</span>
+              <span className="text-[10px] font-body uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-honey/20 text-amber font-semibold">
+                {activeGroup?.label}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-1.5 font-body text-xs text-ink-2 hover:text-dark transition-colors"
-            >
-              <span>Ver site público</span>
-              <ExternalLink size={12} />
-            </a>
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:block text-right">
+                <p className="font-body text-sm font-bold text-ink leading-tight">{user?.name}</p>
+                <p className="font-body text-[10px] text-ink-3 uppercase tracking-widest">{user?.role}</p>
+              </div>
+              <div 
+                onClick={handleAvatarClick}
+                className="w-10 h-10 rounded-full bg-honey text-dark flex items-center justify-center font-display font-bold shrink-0 shadow-sm border border-ink/5 cursor-pointer relative overflow-hidden group hover:opacity-90 transition-opacity"
+                title="Alterar foto de perfil"
+              >
+                {userAvatar ? (
+                  <img src={userAvatar} alt={user?.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{getInitials(user?.name)}</span>
+                )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] text-cream">📷</span>
+                </div>
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleAvatarChange} 
+                accept="image/*" 
+                className="hidden" 
+              />
+            </div>
           </div>
         </header>
 

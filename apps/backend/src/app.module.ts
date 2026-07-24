@@ -28,6 +28,7 @@ import { SettingsModule } from './settings/settings.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { GestaoModule } from './gestao/gestao.module';
 import { SiteConfigModule } from './site-config/site-config.module';
+import { MatriculasModule } from './matriculas/matriculas.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { SiteConfigModule } from './site-config/site-config.module';
     IntegrationsModule,
     GestaoModule,
     SiteConfigModule,
+    MatriculasModule,
   ],
 })
 export class AppModule {}

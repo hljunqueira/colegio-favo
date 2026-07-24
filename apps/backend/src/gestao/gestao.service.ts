@@ -1,9 +1,153 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class GestaoService {
+export class GestaoService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    // 1. Seed Roles com descrições amigáveis
+    const defaultRoles = [
+      { name: 'ADMIN', description: 'Administrador do Sistema' },
+      { name: 'DIRETORIA', description: 'Diretoria Escolar' },
+      { name: 'COORDINATOR', description: 'Coordenador Pedagógico' },
+      { name: 'TEACHER', description: 'Professor Regente' },
+      { name: 'STAFF', description: 'Funcionário Administrativo' },
+      { name: 'STUDENT', description: 'Aluno' },
+      { name: 'PARENT', description: 'Responsável' }
+    ];
+
+    for (const r of defaultRoles) {
+      await this.prisma.role.upsert({
+        where: { name: r.name },
+        update: { description: r.description },
+        create: { name: r.name, description: r.description }
+      });
+    }
+
+    // 2. Seed Permissions
+    const defaultPermissions = [
+      // Top Level Hubs
+      { action: 'view:secretaria', description: 'Secretaria Geral' },
+      { action: 'view:pedagogico', description: 'Pedagógico Geral' },
+      { action: 'view:comunicacao', description: 'Comunicação Geral' },
+      { action: 'view:financeiro', description: 'Financeiro Geral' },
+      { action: 'view:biblioteca', description: 'Biblioteca Geral' },
+      { action: 'view:portaria_saude', description: 'Portaria & Saúde' },
+      { action: 'view:administracao', description: 'Administração Geral' },
+
+      // Secretaria
+      { action: 'view:alunos', description: 'Secretaria > Alunos' },
+      { action: 'view:responsaveis', description: 'Secretaria > Responsáveis' },
+      { action: 'view:turmas', description: 'Secretaria > Turmas' },
+      { action: 'view:professores', description: 'Secretaria > Professores' },
+      { action: 'view:matriculas', description: 'Secretaria > Matrícula Digital' },
+      { action: 'view:series', description: 'Secretaria > Séries & Segmentos' },
+      { action: 'view:disciplinas', description: 'Secretaria > Disciplinas' },
+      { action: 'view:rematriculas', description: 'Secretaria > Rematrículas' },
+      { action: 'view:transferencias', description: 'Secretaria > Transferências' },
+      { action: 'view:calendario', description: 'Secretaria > Calendário Acadêmico' },
+      { action: 'view:relatorios', description: 'Secretaria > Relatórios' },
+
+      // Pedagógico
+      { action: 'view:planoaula', description: 'Pedagógico > Plano de Aula' },
+      { action: 'view:diario', description: 'Pedagógico > Diário de Classe' },
+      { action: 'view:chamada', description: 'Pedagógico > Chamada / Frequência' },
+      { action: 'view:notas', description: 'Pedagógico > Notas & Avaliações' },
+      { action: 'view:atividades', description: 'Pedagógico > Atividades' },
+
+      // Comunicação
+      { action: 'view:comunicados', description: 'Comunicação > Comunicados' },
+      { action: 'view:contatos', description: 'Comunicação > Contatos & Leads' },
+      { action: 'view:mensagens', description: 'Comunicação > Mensagens' },
+      { action: 'view:eventos', description: 'Comunicação > Eventos' },
+
+      // Financeiro
+      { action: 'view:mensalidades', description: 'Financeiro > Mensalidades' },
+      { action: 'view:receitas', description: 'Financeiro > Receitas' },
+      { action: 'view:despesas', description: 'Financeiro > Despesas' },
+      { action: 'view:pix', description: 'Financeiro > PIX & Boletos' },
+      { action: 'view:inadimplencia', description: 'Financeiro > Inadimplência' },
+      { action: 'view:fluxo', description: 'Financeiro > Fluxo de Caixa' },
+
+      // Biblioteca
+      { action: 'view:livros', description: 'Biblioteca > Livros' },
+      { action: 'view:emprestimos', description: 'Biblioteca > Empréstimos' },
+      { action: 'view:reservas', description: 'Biblioteca > Reservas' },
+
+      // Portaria & Saúde
+      { action: 'view:portaria', description: 'Portaria & Saúde > Portaria / Visitantes' },
+      { action: 'view:acesso', description: 'Portaria & Saúde > Controle de Acesso' },
+      { action: 'view:saude', description: 'Portaria & Saúde > Saúde & Enfermaria' },
+      { action: 'view:medicamentos', description: 'Portaria & Saúde > Medicamentos' },
+
+      // Administração
+      { action: 'view:funcionarios', description: 'Administração > Funcionários' },
+      { action: 'view:usuarios', description: 'Administração > Usuários' },
+      { action: 'view:site', description: 'Administração > Site Público' },
+      { action: 'view:perfis', description: 'Administração > Perfis & Permissões' },
+      { action: 'view:logs', description: 'Administração > Logs & Auditoria' },
+      { action: 'view:integracoes', description: 'Administração > Integrações' },
+      { action: 'view:config', description: 'Administração > Configurações Gerais' },
+
+      // CRUD Actions
+      { action: 'write:alunos', description: 'Criar e editar Alunos' },
+      { action: 'delete:alunos', description: 'Remover Alunos' },
+      { action: 'write:professores', description: 'Criar e editar Professores' },
+      { action: 'delete:professores', description: 'Remover Professores' },
+      { action: 'write:turmas', description: 'Criar e editar Turmas' },
+      { action: 'delete:turmas', description: 'Remover Turmas' },
+      { action: 'write:financeiro', description: 'Lançar e editar Mensalidades' },
+      { action: 'delete:financeiro', description: 'Remover Mensalidades' },
+      { action: 'write:responsaveis', description: 'Criar e editar Responsáveis' },
+      { action: 'delete:responsaveis', description: 'Remover Responsáveis' },
+      { action: 'write:matriculas', description: 'Gerenciar Matrículas' },
+      { action: 'delete:matriculas', description: 'Remover Matrículas' },
+      { action: 'write:series', description: 'Criar e editar Séries' },
+      { action: 'delete:series', description: 'Remover Séries' },
+      { action: 'write:disciplinas', description: 'Criar e editar Disciplinas' },
+      { action: 'delete:disciplinas', description: 'Remover Disciplinas' },
+      { action: 'write:planoaula', description: 'Criar e editar Planos de Aula' },
+      { action: 'delete:planoaula', description: 'Remover Planos de Aula' },
+      { action: 'write:diario', description: 'Lançar Diário de Classe' },
+      { action: 'delete:diario', description: 'Remover Diário de Classe' },
+      { action: 'write:chamada', description: 'Lançar Chamadas' },
+      { action: 'delete:chamada', description: 'Remover Chamadas' },
+      { action: 'write:notas', description: 'Lançar Notas' },
+      { action: 'delete:notas', description: 'Remover Notas' },
+      { action: 'write:atividades', description: 'Criar e editar Atividades' },
+      { action: 'delete:atividades', description: 'Remover Atividades' },
+      { action: 'write:comunicados', description: 'Criar e editar Comunicados' },
+      { action: 'delete:comunicados', description: 'Remover Comunicados' },
+      { action: 'write:livros', description: 'Gerenciar Acervo de Livros' },
+      { action: 'delete:livros', description: 'Remover Livros' },
+      { action: 'write:emprestimos', description: 'Gerenciar Empréstimos' },
+      { action: 'delete:emprestimos', description: 'Remover Empréstimos' },
+      { action: 'write:reservas', description: 'Gerenciar Reservas de Livros' },
+      { action: 'delete:reservas', description: 'Remover Reservas de Livros' },
+      { action: 'write:portaria', description: 'Registrar Entrada/Saída Portaria' },
+      { action: 'delete:portaria', description: 'Remover Registros da Portaria' },
+      { action: 'write:saude', description: 'Registrar Atendimentos de Saúde' },
+      { action: 'delete:saude', description: 'Remover Registros de Saúde' },
+      { action: 'write:funcionarios', description: 'Criar e editar Funcionários' },
+      { action: 'delete:funcionarios', description: 'Remover Funcionários' },
+      { action: 'write:usuarios', description: 'Criar e editar Usuários do Sistema' },
+      { action: 'delete:usuarios', description: 'Remover Usuários do Sistema' },
+      { action: 'write:site', description: 'Editar Configurações do Site' },
+      { action: 'delete:site', description: 'Remover Dados do Site' },
+      { action: 'write:perfis', description: 'Gerenciar Perfis & Cargos' },
+      { action: 'delete:perfis', description: 'Remover Perfis & Cargos' },
+      { action: 'write:config', description: 'Alterar Configurações Gerais' }
+    ];
+
+    for (const p of defaultPermissions) {
+      await this.prisma.permission.upsert({
+        where: { action: p.action },
+        update: { description: p.description },
+        create: { action: p.action, description: p.description }
+      });
+    }
+  }
 
   // 1. Stats Geral do Dashboard
   async getStats() {
@@ -16,7 +160,21 @@ export class GestaoService {
     const contatosNovos = await this.prisma.lead.count({
       where: { status: 'novo' },
     });
+    const totalLeads = await this.prisma.lead.count();
     const comunicados = await this.prisma.aviso.count();
+    const totalFuncionarios = await this.prisma.user.count({
+      where: {
+        OR: [
+          { role: { name: { equals: 'STAFF', mode: 'insensitive' } } },
+          { role: { name: { equals: 'FUNCIONARIO', mode: 'insensitive' } } }
+        ]
+      }
+    });
+    const totalLivros = await this.prisma.livro.count();
+    const totalUsuarios = await this.prisma.user.count();
+    const solicitacoesPendentes = await this.prisma.solicitacao.count({
+      where: { status: 'pendente' }
+    });
 
     const financeiroAberto = await this.prisma.financeiro.findMany({
       where: { status: 'aberto' },
@@ -30,6 +188,11 @@ export class GestaoService {
       professores: totalProfessores,
       contatos_novos: contatosNovos,
       comunicados,
+      funcionarios: totalFuncionarios,
+      livros: totalLivros,
+      usuarios: totalUsuarios,
+      leads: totalLeads,
+      solicitacoes: solicitacoesPendentes
     };
   }
 
@@ -480,16 +643,112 @@ export class GestaoService {
   // 7. Usuários do sistema (Todos os Users)
   async getUsuarios() {
     const users = await this.prisma.user.findMany({
-      include: { role: true },
+      include: { role: true, permissions: true },
       orderBy: { name: 'asc' }
     });
 
     return users.map((u) => ({
       id: u.id,
       name: u.name,
-      email: u.email || u.matricula || u.phone || '—',
+      email: u.email || '',
+      phone: u.phone || '',
       role: u.role?.name || 'USER',
+      permissions: u.permissions || []
     }));
+  }
+
+  async updateUsuario(id: string, data: any) {
+    const updateData: any = {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+    };
+    if (data.role) {
+      const roleObj = await this.prisma.role.findFirst({ where: { name: { equals: data.role, mode: 'insensitive' } } });
+      if (roleObj) {
+        updateData.roleId = roleObj.id;
+      }
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async deleteUsuario(id: string) {
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
+  async updateUsuarioPermissions(userId: string, permissionIds: string[]) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        permissions: {
+          set: permissionIds.map(id => ({ id }))
+        }
+      }
+    });
+  }
+
+  async createUsuario(data: any) {
+    const roleName = data.role || 'STAFF';
+    let roleObj = await this.prisma.role.findFirst({ where: { name: { equals: roleName, mode: 'insensitive' } } });
+    if (!roleObj) {
+      roleObj = await this.prisma.role.findFirst({ where: { name: 'STAFF' } });
+    }
+    if (!roleObj) {
+      throw new BadRequestException('Role padrão STAFF não encontrada.');
+    }
+
+    return this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password || 'Favo@2025',
+        roleId: roleObj.id,
+      }
+    });
+  }
+
+  async getRoles() {
+    return this.prisma.role.findMany({
+      include: {
+        permissions: true,
+        _count: {
+          select: { users: true }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
+  }
+
+  async updateRole(id: string, data: any) {
+    return this.prisma.role.update({
+      where: { id },
+      data: {
+        description: data.description
+      }
+    });
+  }
+
+  async getPermissions() {
+    return this.prisma.permission.findMany({
+      orderBy: { action: 'asc' }
+    });
+  }
+
+  async updateRolePermissions(roleId: string, permissionIds: string[]) {
+    return this.prisma.role.update({
+      where: { id: roleId },
+      data: {
+        permissions: {
+          set: permissionIds.map(id => ({ id }))
+        }
+      }
+    });
   }
 
   // 8. Avisos (Comunicados)
@@ -505,6 +764,7 @@ export class GestaoService {
         titulo: body.titulo,
         texto: body.texto,
         categoria: body.categoria || 'Geral',
+        destinatario: body.destinatario || 'GERAL',
       },
     });
   }

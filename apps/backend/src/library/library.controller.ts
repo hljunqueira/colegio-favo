@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
 import { LibraryService } from './library.service';
 
 @Controller('library')
@@ -14,6 +14,16 @@ export class LibraryController {
   @Post('livros')
   async cadastrarLivro(@Body() body: any) {
     return this.libraryService.cadastrarLivro(body);
+  }
+
+  @Patch('livros/:id')
+  async editarLivro(@Param('id') id: string, @Body() body: any) {
+    return this.libraryService.editarLivro(id, body);
+  }
+
+  @Delete('livros/:id')
+  async removerLivro(@Param('id') id: string) {
+    return this.libraryService.removerLivro(id);
   }
 
   // 2. Reservas

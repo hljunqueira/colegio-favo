@@ -23,6 +23,7 @@ model User {
   funcionario             Funcionario?
   preferenciasNotificacao PreferenciasNotificacao?
   logsAcesso              LogAcesso[]
+  permissions             Permission[]
 }
 
 model Role {
@@ -38,6 +39,7 @@ model Permission {
   action      String  @unique
   description String?
   roles       Role[]
+  users       User[]
 }
 
 model SiteConfig {
@@ -71,11 +73,12 @@ model Lead {
 }
 
 model Aviso {
-  id        String   @id @default(uuid())
-  titulo    String
-  texto     String
-  categoria String
-  createdAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  titulo       String
+  texto        String
+  categoria    String
+  destinatario String   @default("GERAL")
+  createdAt    DateTime @default(now())
 }
 
 model Turma {
@@ -244,6 +247,32 @@ model Atestado {
   status      String   @default("aguardando") // "aguardando", "aprovado", "rejeitado"
 }
 
+model PreMatricula {
+  id                  String               @id @default(uuid())
+  token               String               @unique
+  nomeAluno           String
+  dataNascimento      String
+  seriePretendida     String
+  nomeResponsavel     String
+  emailResponsavel    String
+  telefoneResponsavel String
+  cpfResponsavel      String               @unique
+  status              String               @default("pendente_documentos")
+  observacoes         String?
+  expiraEm            DateTime
+  documentos          DocumentoMatricula[]
+  createdAt           DateTime             @default(now())
+}
+
+model DocumentoMatricula {
+  id             String       @id @default(uuid())
+  preMatriculaId String
+  preMatricula   PreMatricula @relation(fields: [preMatriculaId], references: [id], onDelete: Cascade)
+  tipo           String
+  fileUrl        String
+  status         String       @default("pendente")
+}
+
 // ==========================================
 // TAREFAS, BIBLIOTECA E REUNIÕES
 // ==========================================
@@ -282,6 +311,8 @@ model Livro {
   localizacao String?
   quantidade  Int            @default(1)
   capaUrl     String?
+  urlLeitura  String?
+  isDigital   Boolean        @default(false)
   reservas    ReservaLivro[]
 }
 

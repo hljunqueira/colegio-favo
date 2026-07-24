@@ -10,6 +10,8 @@ import PortalPais from "@/pages/PortalPais";
 import PortalProfessor from "@/pages/PortalProfessor";
 import PortalCoordenador from "@/pages/PortalCoordenador";
 import PortalFuncionario from "@/pages/PortalFuncionario";
+import PortalSecretaria from "@/pages/PortalSecretaria";
+import MatriculaPublica from "@/pages/MatriculaPublica";
 import { getUser, getToken } from "@/lib/auth";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -31,6 +33,8 @@ const PortalRedirect = () => {
     case "professor": return <Navigate to="/portal/professor" replace />;
     case "coordinator":
     case "coordenador": return <Navigate to="/portal/coordenador" replace />;
+    case "secretaria":
+    case "secretario": return <Navigate to="/portal/secretaria" replace />;
     case "staff":
     case "funcionario": return <Navigate to="/portal/funcionario" replace />;
     case "admin": return <Navigate to="/gestao" replace />;
@@ -50,6 +54,7 @@ const DevSwitcher = () => {
 
   const portals = [
     { name: "Gestão (Admin)", path: "/gestao" },
+    { name: "Portal Secretaria", path: "/portal/secretaria" },
     { name: "Portal Aluno", path: "/portal/aluno" },
     { name: "Portal Responsável", path: "/portal/pais" },
     { name: "Portal Professor", path: "/portal/professor" },
@@ -100,7 +105,9 @@ function AppContent() {
         <Route path="/portal/coordinator" element={<PortalCoordenador />} />
         <Route path="/portal/funcionario" element={<PortalFuncionario />} />
         <Route path="/portal/staff" element={<PortalFuncionario />} />
+        <Route path="/portal/secretaria" element={<PortalSecretaria />} />
         <Route path="/gestao" element={<Gestao />} />
+        <Route path="/matricula/enviar/:token" element={<MatriculaPublica />} />
       </Routes>
       <DevSwitcher />
     </>

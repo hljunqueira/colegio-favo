@@ -94,4 +94,23 @@ export class EventsService {
       }
     });
   }
+
+  async editarEvento(id: string, body: any) {
+    return this.prisma.agendaEvento.update({
+      where: { id },
+      data: {
+        titulo: body.titulo,
+        descricao: body.descricao,
+        dataHora: new Date(body.dataHora),
+        tipo: body.tipo,
+        turmaId: body.turmaId || null,
+        userId: body.userId || null
+      }
+    });
+  }
+
+  async removerEvento(id: string) {
+    await this.prisma.agendaEvento.delete({ where: { id } });
+    return { success: true };
+  }
 }

@@ -121,8 +121,11 @@ async function main() {
   await prisma.atestado.deleteMany();
   await prisma.entregaAtividade.deleteMany();
   await prisma.atividade.deleteMany();
-  await prisma.reservaLivro.deleteMany();
-  await prisma.livro.deleteMany();
+  const countLivros = await prisma.livro.count();
+  if (countLivros === 0) {
+    await prisma.reservaLivro.deleteMany();
+    await prisma.livro.deleteMany();
+  }
   await prisma.reuniao.deleteMany();
   await prisma.nota.deleteMany();
   await prisma.frequencia.deleteMany();
@@ -139,7 +142,11 @@ async function main() {
   await prisma.siteItem.deleteMany();
   await prisma.aviso.deleteMany();
   await prisma.turma.deleteMany();
-  await prisma.financeiro.deleteMany();
+
+  const countFinanceiro = await prisma.financeiro.count();
+  if (countFinanceiro === 0) {
+    await prisma.financeiro.deleteMany();
+  }
   await prisma.lead.deleteMany();
 
   // Configurações Gerais
@@ -265,14 +272,16 @@ async function main() {
   }
 
   // Seeding inicial de Financeiro
-  const initialFinanceiro = [
-    { aluno: 'Pedro Aluno Teste', ref: 'Julho/2026', vencimento: '10/07/2026', valor: 850.0, status: 'pago' },
-    { aluno: 'Pedro Aluno Teste', ref: 'Agosto/2026', vencimento: '10/08/2026', valor: 850.0, status: 'aberto' },
-    { aluno: 'Pedro Aluno Teste', ref: 'Setembro/2026', vencimento: '10/09/2026', valor: 850.0, status: 'aberto' },
-  ];
+  if (countFinanceiro === 0) {
+    const initialFinanceiro = [
+      { aluno: 'Pedro Aluno Teste', ref: 'Julho/2026', vencimento: '10/07/2026', valor: 850.0, status: 'pago' },
+      { aluno: 'Pedro Aluno Teste', ref: 'Agosto/2026', vencimento: '10/08/2026', valor: 850.0, status: 'aberto' },
+      { aluno: 'Pedro Aluno Teste', ref: 'Setembro/2026', vencimento: '10/09/2026', valor: 850.0, status: 'aberto' },
+    ];
 
-  for (const f of initialFinanceiro) {
-    await prisma.financeiro.create({ data: f });
+    for (const f of initialFinanceiro) {
+      await prisma.financeiro.create({ data: f });
+    }
   }
 
   // Seeding inicial de Avisos
@@ -380,12 +389,14 @@ async function main() {
   });
 
   // 9. Livros na Biblioteca
-  await prisma.livro.createMany({
-    data: [
-      { titulo: 'O Pequeno Príncipe', autor: 'Antoine de Saint-Exupéry', isbn: '9788522031412', localizacao: 'Prateleira A1', quantidade: 3, capaUrl: '' },
-      { titulo: 'Dom Casmurro', autor: 'Machado de Assis', isbn: '9788594318626', localizacao: 'Prateleira B3', quantidade: 2, capaUrl: '' },
-    ]
-  });
+  if (countLivros === 0) {
+    await prisma.livro.createMany({
+      data: [
+        { titulo: 'O Pequeno Príncipe', autor: 'Antoine de Saint-Exupéry', isbn: '9788522031412', localizacao: 'Prateleira A1', quantidade: 3, capaUrl: '' },
+        { titulo: 'Dom Casmurro', autor: 'Machado de Assis', isbn: '9788594318626', localizacao: 'Prateleira B3', quantidade: 2, capaUrl: '' },
+      ]
+    });
+  }
 
   // 10. Preferências de Notificação padrão
   await prisma.preferenciasNotificacao.createMany({

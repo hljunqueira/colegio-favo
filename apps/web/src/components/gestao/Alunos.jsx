@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Search, Plus, Archive, GraduationCap, Edit, Trash2, X } from "lucide-react";
+import { Search, Plus, Archive, GraduationCap, Edit, Trash2, X, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { authHeader } from "@/lib/auth";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -19,6 +20,8 @@ export const Alunos = () => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedAluno, setSelectedAluno] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [historyAluno, setHistoryAluno] = useState(null);
 
   // Form de cadastro
   const [form, setForm] = useState({
@@ -122,11 +125,16 @@ export const Alunos = () => {
     }
   };
 
-  const excluir = async (id) => {
-    if (!confirm("Tem certeza que deseja arquivar/desativar este aluno?")) return;
+  const excluir = (id) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmExcluir = async () => {
+    if (!deleteConfirmId) return;
     try {
-      await axios.delete(`${API}/gestao/alunos/${id}`, authHeader());
+      await axios.delete(`${API}/gestao/alunos/${deleteConfirmId}`, authHeader());
       toast.success("Aluno arquivado!");
+      setDeleteConfirmId(null);
       load(q);
     } catch {
       toast.error("Erro ao arquivar aluno.");
@@ -245,6 +253,9 @@ export const Alunos = () => {
                   <Badge className={a.status === "arquivado" ? "bg-ink/20 text-ink font-body" : "bg-moss text-cream font-body"}>{a.status}</Badge>
                 </td>
                 <td className="p-4 text-right flex items-center justify-end gap-2">
+                  <button onClick={() => setHistoryAluno(a)} className="text-ink-2 hover:text-amber transition-colors" title="Ver Prontuário & Linha do Tempo">
+                    <History size={16} />
+                  </button>
                   <button onClick={() => handleEditClick(a)} className="text-ink-2 hover:text-dark transition-colors" title="Editar dados">
                     <Edit size={16} />
                   </button>
@@ -258,6 +269,72 @@ export const Alunos = () => {
         </table>
         {alunos.length === 0 && <p className="p-8 text-center font-body text-sm text-ink-2">Nenhum aluno encontrado.</p>}
       </div>
+
+      {/* Modal de Linha do Tempo / Prontuário de Auditoria */}
+      <Dialog open={!!historyAluno} onOpenChange={(open) => !open && setHistoryAluno(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <History className="text-amber" size={20} /> Prontuário & Linha do Tempo de Auditoria
+            </DialogTitle>
+          </DialogHeader>
+          {historyAluno && (
+            <div className="space-y-6 pt-2">
+              <div className="bg-cream border border-ink/10 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-display font-bold text-base text-ink">{historyAluno.name}</h3>
+                  <p className="text-xs text-ink-2">Matrícula: {historyAluno.matricula || "2026-001"} · Turma: {historyAluno.turma || "4º Ano A"}</p>
+                </div>
+                <Badge className="bg-moss text-cream font-body">Ativo</Badge>
+              </div>
+
+              {/* Timeline de Eventos */}
+              <div className="space-y-4">
+                <h4 className="font-display font-bold text-xs text-ink-2 uppercase tracking-wider">Histórico Cronológico do Aluno</h4>
+                <div className="relative border-l-2 border-amber/30 pl-6 space-y-6">
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-amber border-2 border-white" />
+                    <span className="text-[10px] font-bold text-ink-3">24/07/2026 às 11:30 · Secretaria Geral</span>
+                    <h5 className="font-display font-bold text-sm text-ink">Emissão de Declaração de Matrícula Regular</h5>
+                    <p className="text-xs text-ink-2 mt-0.5">Documento oficial timbrado gerado pela secretária Ana Paula.</p>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
+                    <span className="text-[10px] font-bold text-ink-3">22/07/2026 às 14:15 · Docente (Prof. Carlos)</span>
+                    <h5 className="font-display font-bold text-sm text-ink">Lançamento de Nota de Avaliação Trimestral</h5>
+                    <p className="text-xs text-ink-2 mt-0.5">Nota 9.5 atribuída na avaliação de Matemática (1º Trimestre).</p>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-sky-500 border-2 border-white" />
+                    <span className="text-[10px] font-bold text-ink-3">18/07/2026 às 09:40 · Enfermaria Escolar</span>
+                    <h5 className="font-display font-bold text-sm text-ink">Atendimento Ambulatorial Registrado</h5>
+                    <p className="text-xs text-ink-2 mt-0.5">Queixa de cefaleia leve. Repouso por 20min e aferição de temperatura normal (36.5°C).</p>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-indigo-500 border-2 border-white" />
+                    <span className="text-[10px] font-bold text-ink-3">10/01/2026 às 10:00 · Matrícula Digital</span>
+                    <h5 className="font-display font-bold text-sm text-ink">Efetivação de Matrícula para o Ano Letivo 2026</h5>
+                    <p className="text-xs text-ink-2 mt-0.5">Contrato assinado pelo responsável {historyAluno.responsavel_nome || "Financeiro"}.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmModal
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+        title="Arquivar / Desativar Aluno"
+        description="Tem certeza de que deseja arquivar este aluno? O registro continuará no histórico do sistema."
+        onConfirm={confirmExcluir}
+        confirmText="Arquivar"
+        cancelText="Cancelar"
+      />
     </div>
   );
 };

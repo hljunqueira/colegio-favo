@@ -117,6 +117,46 @@ export class GestaoController {
     return this.gestaoService.getUsuarios();
   }
 
+  @Patch('gestao/usuarios/:id')
+  async updateUsuario(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateUsuario(id, body);
+  }
+
+  @Delete('gestao/usuarios/:id')
+  async deleteUsuario(@Param('id') id: string) {
+    return this.gestaoService.deleteUsuario(id);
+  }
+
+  @Post('gestao/usuarios')
+  async createUsuario(@Body() body: any) {
+    return this.gestaoService.createUsuario(body);
+  }
+
+  @Post('gestao/usuarios/:id/permissions')
+  async updateUsuarioPermissions(@Param('id') id: string, @Body() body: { permissionIds: string[] }) {
+    return this.gestaoService.updateUsuarioPermissions(id, body.permissionIds);
+  }
+
+  @Get('gestao/roles')
+  async getRoles() {
+    return this.gestaoService.getRoles();
+  }
+
+  @Patch('gestao/roles/:id')
+  async updateRole(@Param('id') id: string, @Body() body: any) {
+    return this.gestaoService.updateRole(id, body);
+  }
+
+  @Get('gestao/permissions')
+  async getPermissions() {
+    return this.gestaoService.getPermissions();
+  }
+
+  @Post('gestao/roles/:id/permissions')
+  async updateRolePermissions(@Param('id') id: string, @Body() body: { permissionIds: string[] }) {
+    return this.gestaoService.updateRolePermissions(id, body.permissionIds);
+  }
+
   // 8. Avisos / Comunicados CRUD
   @Get('avisos')
   async getAvisos() {

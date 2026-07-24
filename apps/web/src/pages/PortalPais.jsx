@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { 
   LayoutGrid, CalendarDays, GraduationCap, Wallet, 
-  LogOut, UserCircle, Bell, ShieldCheck, QrCode, Copy, FileText, HeartPulse, Loader2
+  LogOut, UserCircle, Bell, ShieldCheck, QrCode, Copy, FileText, HeartPulse, Loader2, Library
 } from "lucide-react";
 import { clearSession, getUser, authHeader, getToken } from "@/lib/auth";
 import { toast } from "sonner";
@@ -20,6 +20,9 @@ export default function PortalPais() {
   const [data, setData] = useState(null);
   const [view, setView] = useState("mural");
   const [selectedChildIndex, setSelectedChildIndex] = useState(0);
+  const [avisos, setAvisos] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [books, setBooks] = useState([]);
 
   const loadDashboard = async () => {
     try {
@@ -28,6 +31,16 @@ export default function PortalPais() {
         params: { userId: user.id }
       });
       setData(res.data);
+
+      const [avisosRes, eventsRes, booksRes] = await Promise.all([
+        axios.get(`${API}/avisos`, authHeader()),
+        axios.get(`${API}/events`, authHeader()),
+        axios.get(`${API}/library/livros`, authHeader())
+      ]);
+      setAvisos(avisosRes.data.filter(a => a.destinatario === "PARENT" || a.destinatario === "GERAL"));
+      setEvents(eventsRes.data);
+      setBooks(booksRes.data);
+
       setLoading(false);
     } catch (err) {
       toast.error("Erro ao carregar dados do portal.");
@@ -71,9 +84,11 @@ export default function PortalPais() {
 
   const menuItems = [
     { key: "mural", label: "Mural", icon: LayoutGrid },
-    { key: "frequencia", label: "Frequência", icon: CalendarDays },
+    { key: "agenda", label: "Agenda", icon: CalendarDays },
+    { key: "frequencia", label: "Frequência", icon: Bell },
     { key: "boletim", label: "Boletim", icon: GraduationCap },
     { key: "anamnese", label: "Ficha de Saúde", icon: HeartPulse },
+    { key: "biblioteca", label: "Biblioteca", icon: Library },
     { key: "financeiro", label: "Financeiro", icon: Wallet },
   ];
 
@@ -165,24 +180,22 @@ export default function PortalPais() {
                   <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm">
                     <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Mural de Avisos - {selectedChild?.name}</h3>
                     <div className="space-y-4">
-                      <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
-                        <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">📢</span>
-                        <div>
-                          <h4 className="font-display font-bold text-sm text-ink">Matrículas Escolares de Outros Semestres</h4>
-                          <p className="font-body text-xs text-ink-2 mt-1">
-                            Acompanhe as atualizações acadêmicas do {selectedChild?.name} diretamente pelo painel correspondente de Boletim e Notas.
-                          </p>
+                      {avisos.map((av) => (
+                        <div key={av.id} className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
+                          <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">📢</span>
+                          <div>
+                            <div className="flex gap-2 items-center mb-1">
+                              <Badge className="bg-honey text-dark font-body text-[9px] uppercase">{av.categoria}</Badge>
+                              <span className="text-[10px] text-ink-3">{new Date(av.createdAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <h4 className="font-display font-bold text-sm text-ink">{av.titulo}</h4>
+                            <p className="font-body text-xs text-ink-2 mt-1">{av.texto}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-4 bg-cream rounded-2xl border border-ink/5 flex items-start gap-4">
-                        <span className="p-2 bg-amber/10 text-amber rounded-xl shrink-0">🩺</span>
-                        <div>
-                          <h4 className="font-display font-bold text-sm text-ink">Cardápio do Refeitório</h4>
-                          <p className="font-body text-xs text-ink-2 mt-1">
-                            Lembramos aos pais de atualizarem a Ficha de Saúde de alergias de seus filhos na secretaria para adequação do cardápio semanal.
-                          </p>
-                        </div>
-                      </div>
+                      ))}
+                      {avisos.length === 0 && (
+                        <p className="p-8 text-center text-ink-2">Nenhum comunicado no mural.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -381,6 +394,105 @@ export default function PortalPais() {
                     <div className="mt-8 pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-cream/50">
                       <ShieldCheck size={12} className="text-honey" /> Pagamento com baixa instantânea
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {view === "agenda" && (
+                <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm space-y-6">
+                  <div>
+                    <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Agenda do Aluno (Avaliações e Tarefas)</h3>
+                    <div className="space-y-4">
+                      {selectedChild?.agenda?.map((e) => (
+                        <div key={e.id} className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5 hover:bg-cream-2/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-2.5 h-2.5 rounded-full bg-honey`} />
+                            <div>
+                              <h4 className="font-body font-semibold text-sm">{e.title}</h4>
+                              <p className="text-[11px] text-ink-2">{e.disciplina}</p>
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold text-ink-2">{new Date(e.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      ))}
+                      {(!selectedChild?.agenda || selectedChild.agenda.length === 0) && (
+                        <p className="p-8 text-center text-ink-2">Nenhum compromisso agendado.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Calendário Acadêmico (Eventos Gerais)</h3>
+                    <div className="space-y-4">
+                      {events.map((e) => (
+                        <div key={e.id} className="flex items-center justify-between p-4 bg-cream rounded-2xl border border-ink/5 hover:bg-cream-2/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2.5 h-2.5 rounded-full bg-moss" />
+                            <div>
+                              <h4 className="font-body font-semibold text-sm">{e.titulo}</h4>
+                              <p className="text-[11px] text-ink-2">{e.descricao}</p>
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold text-ink-2">{new Date(e.dataHora).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      ))}
+                      {events.length === 0 && (
+                        <p className="p-8 text-center text-ink-2">Nenhum evento letivo cadastrado.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {view === "biblioteca" && (
+                <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm space-y-6">
+                  <h3 className="font-display font-extrabold text-xl text-ink">Biblioteca Escolar</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {books.map(l => (
+                      <div key={l.id} className="bg-cream border border-ink/10 rounded-2xl p-5 flex gap-4 shadow-sm relative overflow-hidden">
+                        {l.capaUrl ? (
+                          <img src={l.capaUrl} alt={l.titulo} className="w-16 h-24 object-cover rounded-md shadow-sm border border-ink/5 shrink-0" />
+                        ) : (
+                          <div className="w-16 h-24 bg-cream-2 rounded-md flex items-center justify-center text-ink-2 border border-ink/5 shrink-0">
+                            <Library size={24} />
+                          </div>
+                        )}
+                        <div className="flex flex-col justify-between flex-grow">
+                          <div>
+                            <h4 className="font-display font-bold text-sm text-ink leading-tight mb-1">{l.titulo}</h4>
+                            <p className="font-body text-xs text-ink-2">{l.autor}</p>
+                            <Badge className={`mt-2 text-[9px] uppercase font-body ${l.isDigital ? "bg-moss/10 text-moss" : "bg-amber/10 text-amber"}`}>
+                              {l.isDigital ? "Digital" : "Físico"}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-xs font-body pt-2 border-t border-ink/5 mt-2">
+                            {l.isDigital ? (
+                              <a 
+                                href={l.urlLeitura} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-1 font-bold text-moss hover:text-amber transition-colors"
+                              >
+                                Ler Online 📖
+                              </a>
+                            ) : (
+                              <>
+                                <span className="text-ink-2">Qtd: {l.quantidade}</span>
+                                <button 
+                                  onClick={() => toast.success(`Solicitação de reserva registrada para "${l.titulo}"!`)}
+                                  className="text-[10px] bg-dark text-cream hover:bg-amber hover:text-dark px-2.5 py-1 rounded-full font-semibold transition-colors"
+                                >
+                                  Reservar
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {books.length === 0 && (
+                      <p className="p-8 text-center text-ink-2 col-span-full">Nenhum livro no acervo.</p>
+                    )}
                   </div>
                 </div>
               )}

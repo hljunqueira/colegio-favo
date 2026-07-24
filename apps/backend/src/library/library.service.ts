@@ -1,9 +1,46 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class LibraryService {
+export class LibraryService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    // Seed some classic public domain books if they don't exist
+    const defaultBooks = [
+      {
+        titulo: "Dom Casmurro",
+        autor: "Machado de Assis",
+        isDigital: true,
+        urlLeitura: "https://www.gutenberg.org/files/55752/55752-h/55752-h.htm",
+        capaUrl: "https://images-na.ssl-images-amazon.com/images/I/81aY1lxk74L.jpg",
+        quantidade: 1
+      },
+      {
+        titulo: "Memórias Póstumas de Brás Cubas",
+        autor: "Machado de Assis",
+        isDigital: true,
+        urlLeitura: "https://www.gutenberg.org/files/55799/55799-h/55799-h.htm",
+        capaUrl: "https://images-na.ssl-images-amazon.com/images/I/91M14AcrVXL.jpg",
+        quantidade: 1
+      },
+      {
+        titulo: "O Cortiço",
+        autor: "Aluísio Azevedo",
+        isDigital: true,
+        urlLeitura: "https://www.gutenberg.org/files/55694/55694-h/55694-h.htm",
+        capaUrl: "https://images-na.ssl-images-amazon.com/images/I/81xHnO5BexL.jpg",
+        quantidade: 1
+      }
+    ];
+
+    for (const b of defaultBooks) {
+      const exists = await this.prisma.livro.findFirst({ where: { titulo: b.titulo } });
+      if (!exists) {
+        await this.prisma.livro.create({ data: b });
+      }
+    }
+  }
 
   // 1. Acervo Físico (Local DB)
   async buscarLivrosFisicos(query: string = '') {
@@ -29,9 +66,32 @@ export class LibraryService {
         isbn: body.isbn || null,
         localizacao: body.localizacao || null,
         quantidade: body.quantidade || 1,
-        capaUrl: body.capaUrl || null
+        capaUrl: body.capaUrl || null,
+        isDigital: body.isDigital || false,
+        urlLeitura: body.urlLeitura || null,
       }
     });
+  }
+
+  async editarLivro(id: string, body: any) {
+    return this.prisma.livro.update({
+      where: { id },
+      data: {
+        titulo: body.titulo,
+        autor: body.autor,
+        isbn: body.isbn || null,
+        localizacao: body.localizacao || null,
+        quantidade: body.quantidade || 1,
+        capaUrl: body.capaUrl || null,
+        isDigital: body.isDigital || false,
+        urlLeitura: body.urlLeitura || null,
+      }
+    });
+  }
+
+  async removerLivro(id: string) {
+    await this.prisma.livro.delete({ where: { id } });
+    return { success: true };
   }
 
   // 2. Reservas de Livros Físicos

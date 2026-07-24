@@ -19,7 +19,6 @@ ssh root@$VPS_IP "cd $VPS_DIR/infra/vps && docker compose exec -T caddy caddy re
 Write-Host "=== [6/6] Copiando prisma.config.ts e executando db push/seed na VPS ==="
 ssh root@$VPS_IP "docker cp $VPS_DIR/prisma.config.ts vps-backend-1:/app/prisma.config.ts"
 ssh root@$VPS_IP "docker exec vps-backend-1 pnpm exec prisma db push --accept-data-loss"
-ssh root@$VPS_IP "docker exec vps-backend-1 pnpm exec prisma db seed"
 
 Write-Host "=== Limpando arquivos locais ==="
 Remove-Item app.tar.gz -ErrorAction SilentlyContinue

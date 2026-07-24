@@ -14,11 +14,10 @@ export class AuthService {
       // Login de Aluno
       user = await this.prisma.user.findFirst({
         where: { matricula },
-        include: { role: true },
+        include: { role: { include: { permissions: true } }, permissions: true },
       });
     } else if (phone) {
       // Login de Responsável
-      // Limpa máscara do telefone antes de buscar
       const cleanPhone = phone.replace(/\D/g, '');
       user = await this.prisma.user.findFirst({
         where: {
@@ -26,7 +25,7 @@ export class AuthService {
             contains: cleanPhone,
           },
         },
-        include: { role: true },
+        include: { role: { include: { permissions: true } }, permissions: true },
       });
     } else if (email) {
       // Login de Equipe Favo (Admin, Professor, Coordenador, Funcionario)
@@ -36,7 +35,7 @@ export class AuthService {
       }
       user = await this.prisma.user.findUnique({
         where: { email: lookupEmail },
-        include: { role: true },
+        include: { role: { include: { permissions: true } }, permissions: true },
       });
     }
 
@@ -45,13 +44,17 @@ export class AuthService {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    // Validação de senha simplificada para demonstração/testes (aceita Favo@2025 ou senha cadastrada)
     const isPasswordValid = password === 'Favo@2025' || user.password === password;
     if (!isPasswordValid) {
       throw new UnauthorizedException('Senha incorreta');
     }
 
-    // Criação de token fake JWT padrão (Base64) para evitar dependência externa de assinatura
+    const mergedPermissions = Array.from(new Set([
+      ...(user.role?.permissions?.map(p => p.action) || []),
+      ...(user.permissions?.map(p => p.action) || []),
+    ]));
+
+    // Criação de token fake JWT padrão (Base64)
     const payloadToken = {
       id: user.id,
       name: user.name,
@@ -59,6 +62,7 @@ export class AuthService {
       phone: user.phone,
       matricula: user.matricula,
       role: user.role?.name || 'user',
+      permissions: mergedPermissions,
     };
 
     const token = Buffer.from(JSON.stringify(payloadToken)).toString('base64');
@@ -88,13 +92,18 @@ export class AuthService {
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.id },
-        include: { role: true },
+        include: { role: { include: { permissions: true } }, permissions: true },
       });
 
       if (!user) {
         console.log('getMe user not found in database for ID:', payload.id);
         throw new UnauthorizedException('Usuário não encontrado');
       }
+
+      const mergedPermissions = Array.from(new Set([
+        ...(user.role?.permissions?.map(p => p.action) || []),
+        ...(user.permissions?.map(p => p.action) || []),
+      ]));
 
       console.log('getMe successful for user:', user.name);
       return {
@@ -104,6 +113,7 @@ export class AuthService {
         phone: user.phone,
         matricula: user.matricula,
         role: (user.role?.name || 'user').toLowerCase(),
+        permissions: mergedPermissions,
       };
     } catch (e) {
       console.error('getMe parsing/database exception:', e);

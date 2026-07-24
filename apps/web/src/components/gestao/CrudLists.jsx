@@ -8,6 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { authHeader } from "@/lib/auth";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -15,6 +16,7 @@ export const Turmas = () => {
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedTurma, setSelectedTurma] = useState(null);
   const [f, setF] = useState({ nome: "", serie: "", turno: "Matutino", ano: "2026", professor: "" });
 
@@ -59,10 +61,14 @@ export const Turmas = () => {
     }
   };
 
-  const deleteTurma = async (id) => {
-    if (!confirm("Deseja realmente remover esta turma?")) return;
+  const handleDeleteClick = (turma) => {
+    setSelectedTurma(turma);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await axios.delete(`${API}/gestao/turmas/${id}`, authHeader());
+      await axios.delete(`${API}/gestao/turmas/${selectedTurma.id}`, authHeader());
       toast.success("Turma removida!");
       load();
     } catch (err) {
@@ -113,6 +119,16 @@ export const Turmas = () => {
         </DialogContent>
       </Dialog>
 
+      <ConfirmModal 
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Deseja realmente remover esta turma?"
+        description="Esta ação removerá a turma do sistema. Certifique-se de que não existam alunos vinculados."
+        onConfirm={confirmDelete}
+        confirmText="Confirmar Remoção"
+        cancelText="Voltar"
+      />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {rows.map((t) => (
           <div key={t.id} data-testid={`turma-${t.id}`} className="bg-cream rounded-2xl border border-ink/10 p-5 flex flex-col justify-between">
@@ -121,14 +137,14 @@ export const Turmas = () => {
                 <h3 className="font-display font-bold text-lg text-ink">{t.nome}</h3>
                 <Badge className="bg-honey text-dark font-body">{t.turno}</Badge>
               </div>
-              <p className="font-body text-sm" style={{ color: "var(--ink-2)" }}>{t.serie} · {t.ano}</p>
+              <p className="font-body text-sm text-ink-2">{t.serie} · {t.ano}</p>
               <p className="font-body text-sm text-amber mt-2">{t.professor}</p>
             </div>
             <div className="flex items-center justify-end gap-2 border-t pt-3 mt-4 border-ink/5">
               <button onClick={() => handleEditClick(t)} className="text-ink-2 hover:text-dark transition-colors" title="Editar">
                 <Edit size={16} />
               </button>
-              <button onClick={() => deleteTurma(t.id)} className="text-ink-2 hover:text-red-500 transition-colors" title="Excluir">
+              <button onClick={() => handleDeleteClick(t)} className="text-ink-2 hover:text-red-500 transition-colors" title="Excluir">
                 <Trash2 size={16} />
               </button>
             </div>
@@ -143,6 +159,7 @@ export const Professores = () => {
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedProf, setSelectedProf] = useState(null);
   const [f, setF] = useState({ name: "", email: "", disciplina: "Geral", telefone: "" });
 
@@ -186,10 +203,14 @@ export const Professores = () => {
     }
   };
 
-  const deleteProf = async (id) => {
-    if (!confirm("Deseja realmente remover este professor? Isso apagará a conta do usuário.")) return;
+  const handleDeleteClick = (prof) => {
+    setSelectedProf(prof);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await axios.delete(`${API}/gestao/professores/${id}`, authHeader());
+      await axios.delete(`${API}/gestao/professores/${selectedProf.id}`, authHeader());
       toast.success("Professor removido!");
       load();
     } catch {
@@ -238,6 +259,16 @@ export const Professores = () => {
         </DialogContent>
       </Dialog>
 
+      <ConfirmModal 
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Deseja realmente remover este professor?"
+        description="Esta ação também desvinculará o professor das turmas associadas."
+        onConfirm={confirmDelete}
+        confirmText="Confirmar Remoção"
+        cancelText="Voltar"
+      />
+
       <div className="bg-cream rounded-2xl border border-ink/10 overflow-hidden">
         <table className="w-full font-body text-sm">
           <thead><tr className="bg-cream-2 text-left" style={{ color: "var(--ink-2)" }}>
@@ -254,7 +285,7 @@ export const Professores = () => {
                   <button onClick={() => handleEditClick(p)} className="text-ink-2 hover:text-dark transition-colors" title="Editar">
                     <Edit size={16} />
                   </button>
-                  <button onClick={() => deleteProf(p.id)} className="text-ink-2 hover:text-red-500 transition-colors" title="Excluir">
+                  <button onClick={() => handleDeleteClick(p)} className="text-ink-2 hover:text-red-500 transition-colors" title="Excluir">
                     <Trash2 size={16} />
                   </button>
                 </td>

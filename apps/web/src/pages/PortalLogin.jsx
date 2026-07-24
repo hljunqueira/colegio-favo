@@ -366,7 +366,7 @@ export default function PortalLogin() {
               </div>
               <h3 className="font-display font-extrabold text-2xl text-cream mb-2">Equipe Favo</h3>
               <p className="font-body text-xs text-cream/60 mb-6">
-                Acesso dedicado a Professores, Coordenadores, Funcionários e Administradores.
+                Acesso dedicado a Secretários(as), Professores, Coordenadores, Funcionários e Administradores.
               </p>
 
               <div className="space-y-4">
