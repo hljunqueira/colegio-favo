@@ -13,8 +13,8 @@ export class GestaoController {
 
   // 2. Alunos CRUD
   @Get('gestao/alunos')
-  async getAlunos(@Query('q') q?: string) {
-    return this.gestaoService.getAlunos(q);
+  async getAlunos(@Query('q') q?: string, @Query('status') status?: string) {
+    return this.gestaoService.getAlunos(q, status);
   }
 
   @Post('gestao/alunos')

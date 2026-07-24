@@ -23,6 +23,8 @@ export const Alunos = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [historyAluno, setHistoryAluno] = useState(null);
 
+  const [statusFilter, setStatusFilter] = useState("ativo");
+
   // Form de cadastro
   const [form, setForm] = useState({
     name: "",
@@ -41,9 +43,12 @@ export const Alunos = () => {
     enderecoState: ""
   });
 
-  const load = useCallback(async (query = "") => {
+  const load = useCallback(async (query = q, filterStatus = statusFilter) => {
     try {
-      const resAlunos = await axios.get(`${API}/gestao/alunos`, { ...authHeader(), params: { q: query } });
+      const resAlunos = await axios.get(`${API}/gestao/alunos`, { 
+        ...authHeader(), 
+        params: { q: query, status: filterStatus } 
+      });
       setAlunos(resAlunos.data);
 
       const resTurmas = await axios.get(`${API}/gestao/turmas`, authHeader());
@@ -54,7 +59,7 @@ export const Alunos = () => {
     } catch {
       toast.error("Erro ao carregar dados.");
     }
-  }, []);
+  }, [q, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -200,9 +205,32 @@ export const Alunos = () => {
         </Dialog>
       </div>
 
-      <div className="relative mb-5 max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-2" />
-        <Input data-testid="alunos-search" placeholder="Buscar aluno por nome ou matrícula..." value={q} onChange={(e) => { setQ(e.target.value); load(e.target.value); }} className="pl-9 font-body" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+        <div className="relative max-w-sm w-full">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-2" />
+          <Input data-testid="alunos-search" placeholder="Buscar aluno por nome ou matrícula..." value={q} onChange={(e) => { setQ(e.target.value); load(e.target.value, statusFilter); }} className="pl-9 font-body" />
+        </div>
+
+        <div className="flex items-center gap-1.5 bg-cream-2 p-1 rounded-xl border border-ink/5 text-xs font-semibold">
+          <button
+            onClick={() => { setStatusFilter("ativo"); load(q, "ativo"); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === "ativo" ? "bg-amber text-dark font-bold shadow-sm" : "text-ink-2 hover:text-ink"}`}
+          >
+            Ativos
+          </button>
+          <button
+            onClick={() => { setStatusFilter("arquivado"); load(q, "arquivado"); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === "arquivado" ? "bg-amber text-dark font-bold shadow-sm" : "text-ink-2 hover:text-ink"}`}
+          >
+            Arquivados
+          </button>
+          <button
+            onClick={() => { setStatusFilter("all"); load(q, "all"); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${statusFilter === "all" ? "bg-amber text-dark font-bold shadow-sm" : "text-ink-2 hover:text-ink"}`}
+          >
+            Todos
+          </button>
+        </div>
       </div>
 
       {/* Dialog de Edição */}

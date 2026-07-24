@@ -197,17 +197,24 @@ export class GestaoService implements OnModuleInit {
   }
 
   // 2. Alunos (CRUD Completo)
-  async getAlunos(search: string = '') {
+  async getAlunos(search: string = '', status?: string) {
+    const whereClause: any = {
+      OR: search
+        ? [
+            { user: { name: { contains: search, mode: 'insensitive' } } },
+            { matricula: { contains: search, mode: 'insensitive' } },
+          ]
+        : undefined,
+    };
+
+    if (status && status !== 'all') {
+      whereClause.status = status;
+    } else if (!status && !search) {
+      whereClause.status = 'ativo';
+    }
+
     const alunos = await this.prisma.aluno.findMany({
-      where: {
-        status: 'ativo',
-        OR: search
-          ? [
-              { user: { name: { contains: search, mode: 'insensitive' } } },
-              { matricula: { contains: search, mode: 'insensitive' } },
-            ]
-          : undefined,
-      },
+      where: whereClause,
       include: {
         user: true,
         responsavel: {
@@ -221,13 +228,13 @@ export class GestaoService implements OnModuleInit {
 
     return alunos.map((a) => ({
       id: a.id,
-      name: a.user.name,
+      name: a.user?.name || 'Sem Nome',
       matricula: a.matricula,
       status: a.status,
-      responsavel_nome: a.responsavel.user.name,
-      responsavel_email: a.responsavel.user.email || '—',
-      responsavel_telefone: a.responsavel.telefone,
-      turma: a.turma.nome,
+      responsavel_nome: a.responsavel?.user?.name || '—',
+      responsavel_email: a.responsavel?.user?.email || '—',
+      responsavel_telefone: a.responsavel?.telefone || '—',
+      turma: a.turma?.nome || 'Sem Turma',
       turmaId: a.turmaId,
       responsavelId: a.responsavelId,
       fichaAnamnese: a.anamnese || null
@@ -501,11 +508,19 @@ export class GestaoService implements OnModuleInit {
   }
 
   async deleteTurma(id: string) {
-    // Verificar se há alunos matriculados
-    const alunosCount = await this.prisma.aluno.count({ where: { turmaId: id } });
-    if (alunosCount > 0) {
-      throw new BadRequestException('Não é possível excluir uma turma que possui alunos vinculados. Remova ou transfira os alunos antes.');
+    // Verificar se há alunos ATIVOS matriculados nesta turma
+    const activeAlunosCount = await this.prisma.aluno.count({ 
+      where: { turmaId: id, status: 'ativo' } 
+    });
+    if (activeAlunosCount > 0) {
+      throw new BadRequestException(`Não é possível excluir uma turma que possui ${activeAlunosCount} aluno(s) ativo(s) vinculado(s). Remova ou transfira os alunos antes.`);
     }
+
+    // Desvincular alunos arquivados/inativos para permitir exclusão limpa da turma
+    await this.prisma.aluno.updateMany({
+      where: { turmaId: id },
+      data: { turmaId: null }
+    });
 
     await this.prisma.turma.delete({ where: { id } });
     return { success: true };
