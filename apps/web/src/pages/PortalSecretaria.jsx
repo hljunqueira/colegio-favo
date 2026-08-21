@@ -90,7 +90,7 @@ export default function PortalSecretaria() {
             F
           </div>
           <div>
-            <h1 className="font-display font-black text-sm tracking-wide text-cream uppercase">Favo de Mel</h1>
+            <h1 className="font-display font-black text-sm tracking-wide text-cream uppercase">Colégio Favo</h1>
             <p className="text-[10px] text-cream/60 font-medium">Portal da Secretaria</p>
           </div>
         </div>
@@ -298,9 +298,9 @@ export default function PortalSecretaria() {
               {selectedAluno ? (
                 <div className="bg-white border border-ink/20 rounded-3xl p-8 sm:p-12 shadow-lg max-w-3xl mx-auto space-y-8 font-body print:border-none print:shadow-none print:p-0">
                   <div className="text-center border-b border-ink/10 pb-6 space-y-1">
-                    <h1 className="font-display font-black text-2xl text-ink uppercase tracking-wide">Centro Educacional Favo de Mel</h1>
+                    <h1 className="font-display font-black text-2xl text-ink uppercase tracking-wide">Colégio Favo</h1>
                     <p className="text-xs text-ink-2">Educação Infantil e Ensino Fundamental</p>
-                    <p className="text-[10px] text-ink-3">CNPJ: 00.000.000/0001-00 · Rua das Flores, 123 · Tel: (11) 4002-8922</p>
+                    <p className="text-[10px] text-ink-3">CNPJ: 00.000.000/0001-00 · Balneário Arroio do Silva, SC · Tel: (48) 99627-5127</p>
                   </div>
 
                   <div className="text-center py-4">
@@ -326,11 +326,11 @@ export default function PortalSecretaria() {
                   </div>
 
                   <div className="pt-12 text-center space-y-8">
-                    <p className="text-xs text-ink-2">São Paulo, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}.</p>
+                    <p className="text-xs text-ink-2">Balneário Arroio do Silva - SC, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}.</p>
                     <div className="pt-8 flex flex-col items-center">
                       <div className="w-64 border-t border-ink/40" />
                       <span className="text-xs font-bold text-ink mt-2">Secretaria Geral Escolar</span>
-                      <span className="text-[10px] text-ink-3">Centro Educacional Favo de Mel</span>
+                      <span className="text-[10px] text-ink-3">Colégio Favo</span>
                     </div>
                   </div>
                 </div>

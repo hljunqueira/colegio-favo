@@ -27,13 +27,21 @@ export const Navbar = ({ configs }) => {
       animate={{ y: 0 }}
       transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
       data-testid="main-navbar"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled ? "backdrop-blur-xl bg-cream/70 border-b border-ink/10" : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "backdrop-blur-xl bg-cream/70 border-b border-ink/10" : "bg-transparent"
+        }`}
     >
       <nav className="max-w-[1400px] mx-auto px-5 sm:px-8 h-24 flex items-center justify-between">
-        <a href="#inicio" data-testid="logo-link" className="flex items-center group">
-          <img src="/logo-favo-oficial.png" alt="Centro Educacional Favo de Mel" className="w-20 h-20 rounded-xl object-cover" />
+        <a 
+          href="#inicio" 
+          data-testid="logo-link" 
+          className={`flex items-center gap-2.5 group transition-all duration-500 ${
+            scrolled ? "opacity-100 scale-100 translate-x-0" : "lg:opacity-0 lg:scale-90 lg:-translate-x-4 pointer-events-none lg:pointer-events-none"
+          }`}
+        >
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-14 h-14 rounded-xl object-contain drop-shadow-sm" />
+          <span className="font-display font-black text-lg text-ink hidden sm:inline tracking-tight">
+            COLÉGIO <span className="text-amber">FAVO</span>
+          </span>
         </a>
 
         <div className="hidden lg:flex items-center gap-7 bg-cream/80 backdrop-blur-md px-6 py-2.5 rounded-full border border-dark/10 shadow-sm">

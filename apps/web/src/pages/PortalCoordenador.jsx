@@ -218,7 +218,7 @@ export default function PortalCoordenador() {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5 text-cream">
         <div className="flex items-center gap-2 mb-10 px-2">
-          <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo.jpg" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-cream">Portal Coordenação</span>
         </div>
         <nav className="flex flex-col gap-1 flex-grow">
@@ -388,7 +388,7 @@ export default function PortalCoordenador() {
 
           {view === "pessoas" && (
             <div className="bg-white border border-ink/5 rounded-3xl p-6 shadow-sm overflow-x-auto">
-              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Lista de Contatos do Centro Educacional</h3>
+              <h3 className="font-display font-extrabold text-xl mb-4 text-ink">Lista de Contatos do Colégio Favo</h3>
               <table className="w-full text-left border-collapse font-body text-xs">
                 <thead>
                   <tr className="border-b border-ink/5 text-ink-2 uppercase font-semibold">

@@ -84,7 +84,7 @@ export default function PortalDashboard() {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5">
         <div className="flex items-center gap-2 mb-10 px-2">
-          <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-cream">Portal Favo</span>
         </div>
         <nav className="flex flex-col gap-1">

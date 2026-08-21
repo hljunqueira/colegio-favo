@@ -105,7 +105,7 @@ export default function PortalPais() {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5 text-cream">
         <div className="flex items-center gap-2 mb-10 px-2">
-          <img src="/logo-favo-oficial.png" alt="Colégio Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-cream">Portal Pais</span>
         </div>
         <nav className="flex flex-col gap-1 flex-grow">
@@ -261,7 +261,7 @@ export default function PortalPais() {
                   
                   <div id="boletim-table-pdf" className="p-4 bg-white border border-ink/10 rounded-2xl overflow-x-auto">
                     <div className="mb-4 border-b pb-3">
-                      <h2 className="font-display font-bold text-lg text-ink">Colégio Favo de Mel</h2>
+                      <h2 className="font-display font-bold text-lg text-ink">Colégio Favo</h2>
                       <p className="font-body text-xs text-ink-2">Aluno: {selectedChild?.name} | Matrícula: {selectedChild?.matricula} | Turma: {selectedChild?.turma}</p>
                     </div>
                     <table className="w-full text-left border-collapse font-body text-xs">

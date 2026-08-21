@@ -265,7 +265,7 @@ const Pix = ({ onBack }) => {
       <ModuleHeader title="Cobrança Automática & PIX Dinâmico" icon={QrCode} onBack={onBack} />
       <div className="bg-cream border border-ink/10 rounded-2xl p-6 sm:p-8 space-y-6 max-w-xl">
         <div>
-          <h3 className="font-display font-bold text-lg text-ink mb-1">Chave Oficial PIX do Centro Educacional</h3>
+          <h3 className="font-display font-bold text-lg text-ink mb-1">Chave Oficial PIX do Colégio Favo</h3>
           <p className="text-xs text-ink-2">Utilizada para recebimento automatizado de mensalidades e taxas.</p>
         </div>
 

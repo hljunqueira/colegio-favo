@@ -92,7 +92,7 @@ export const Contact = ({ configs }) => {
 
             <div className="rounded-2xl overflow-hidden h-64 border border-cream/10 mt-4">
               <iframe
-                title="Mapa Favo de Mel"
+                title="Mapa Colégio Favo"
                 width="100%"
                 height="100%"
                 style={{ border: 0, filter: "grayscale(0.3)" }}

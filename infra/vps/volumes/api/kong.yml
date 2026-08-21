@@ -1,0 +1,59 @@
+_format_version: "1.1"
+_transform: true
+
+services:
+  - name: auth
+    url: http://favo-supabase-auth:9999
+    routes:
+      - name: auth
+        paths:
+          - /auth/v1
+        strip_path: true
+
+  - name: rest
+    url: http://favo-supabase-rest:3000
+    routes:
+      - name: rest
+        paths:
+          - /rest/v1
+        strip_path: true
+
+  - name: meta
+    url: http://favo-supabase-meta:8080
+    routes:
+      - name: meta
+        paths:
+          - /pg_meta/v1
+        strip_path: true
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Accept-Language
+        - Content-Language
+        - Content-Type
+        - Authorization
+        - x-client-info
+        - apikey
+        - Prefer
+        - accept-profile
+        - content-profile
+        - Profile-Key
+        - x-relay-header
+        - x-supabase-api-version
+      exposed_headers:
+        - Content-Range
+        - X-Total-Count
+      max_age: 3600
+      credentials: true

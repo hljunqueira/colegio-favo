@@ -149,7 +149,7 @@ export default function MatriculaPublica() {
           <AlertCircle className="text-red-500 mx-auto mb-4" size={48} />
           <h3 className="font-display font-extrabold text-xl text-ink mb-2">Erro de Acesso</h3>
           <p className="text-sm text-ink-2 mb-6 leading-relaxed">{errorMsg}</p>
-          <span className="text-xs text-ink-3">Centro Educacional Favo de Mel 🐝</span>
+          <span className="text-xs text-ink-3">Colégio Favo 🐝</span>
         </div>
       </div>
     );

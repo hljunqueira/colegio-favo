@@ -48,32 +48,35 @@ colegio-favo/
 
 ---
 
-## 3. Detalhes da VPS (184.107.141.97)
+## 3. Detalhes da VPS (23.80.89.116)
 
-A infraestrutura é executada em containers Docker sob uma VPS Linux Ubuntu.
-* **IP da VPS**: `184.107.141.97`
+A infraestrutura é executada em containers Docker sob uma VPS Linux Ubuntu isolada.
+* **IP da VPS**: `23.80.89.116`
 * **Usuário SSH**: `root` (Acesso via chave SSH sem senha configurado na máquina local)
+* **Diretório do Projeto na VPS**: `/root/colegio-favo`
 
-### Serviços e Endereços (sslip.io)
-O proxy reverso (Caddy ou Nginx) expõe os seguintes serviços com SSL automático:
-* **Supabase Studio (Dashboard)**: `https://studio.184-107-141-97.sslip.io`
-* **Supabase Kong (API)**: `https://supabase.184-107-141-97.sslip.io`
-* **n8n (Automação)**: `https://n8n.184-107-141-97.sslip.io`
-* **Evolution API (WhatsApp)**: `https://whatsapp.184-107-141-97.sslip.io`
+### Serviços e Endereços (escolafavodemel.com.br)
+O proxy reverso Caddy expõe os seguintes serviços com SSL automático:
+* **Web App (Frontend)**: `https://escolafavodemel.com.br` / `https://www.escolafavodemel.com.br` (Porta interna 3030)
+* **Backend API**: `https://api.escolafavodemel.com.br` (Porta interna 3031)
+* **Supabase Kong (API Gateway)**: `https://supabase.escolafavodemel.com.br` (Porta interna 8030)
+* **Supabase Studio (Dashboard)**: `https://studio.escolafavodemel.com.br` (Porta interna 8031)
+* **Evolution API (WhatsApp)**: `https://whatsapp.escolafavodemel.com.br` (Porta interna 3035)
+* **n8n (Automação)**: `https://n8n.escolafavodemel.com.br` (Porta interna 3032)
+* **Supabase PostgreSQL 15**: `127.0.0.1:5436` (Host VPS)
 
 ---
 
 ## 4. Comandos de Gerenciamento da VPS
 
-### Limpar containers legados
+### Status dos containers
 ```bash
-ssh root@184.107.141.97 "docker stop \$(docker ps -aq) 2>/dev/null || true; docker rm \$(docker ps -aq) 2>/dev/null || true; docker volume rm \$(docker volume ls -q) 2>/dev/null || true; rm -rf app-infra supabase"
+ssh root@23.80.89.116 "docker ps --filter 'name=favo-'"
 ```
 
-### Inicializar a nova infraestrutura
-Após enviar os arquivos de compose via `scp`:
+### Reiniciar serviços
 ```bash
-ssh root@184.107.141.97 "cd /root/app-infra && docker compose up -d"
+ssh root@23.80.89.116 "cd /root/colegio-favo && docker compose up -d"
 ```
 
 ---

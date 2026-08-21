@@ -44,13 +44,13 @@ export default function AdminLogin() {
         </a>
         <div className="bg-cream rounded-[1.75rem] p-8 sm:p-10 border border-ink/10 shadow-xl">
           <div className="flex items-center gap-2 mb-8">
-            <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-12 h-12 rounded-lg object-cover" />
+            <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-12 h-12 rounded-lg object-cover" />
             <span className="font-display font-extrabold tracking-tight text-xl text-ink">Área administrativa</span>
           </div>
           <form onSubmit={submit} className="space-y-5" data-testid="admin-login-form">
             <div className="space-y-2">
               <Label className="font-body">E-mail</Label>
-              <Input data-testid="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@favodemel.com.br" className="font-body" />
+              <Input data-testid="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@colegiofavo.com.br" className="font-body" />
             </div>
             <div className="space-y-2">
               <Label className="font-body">Senha</Label>

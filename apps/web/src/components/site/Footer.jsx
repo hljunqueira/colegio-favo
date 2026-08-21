@@ -5,11 +5,11 @@ export const Footer = ({ configs }) => {
     <footer className="bg-dark border-t border-cream/10 py-10" data-testid="site-footer">
       <div className="max-w-[1400px] mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-8 h-8 rounded-md object-cover" />
-          <span className="font-display font-extrabold tracking-tight text-cream">Favo de Mel</span>
+          <img src="/logo-favo.jpg" alt="Colégio Favo" className="w-8 h-8 rounded-md object-cover" />
+          <span className="font-display font-extrabold tracking-tight text-cream">Colégio Favo</span>
         </div>
         <p className="font-body text-xs text-cream/50 text-center flex flex-col items-center gap-1.5">
-          <span>© {new Date().getFullYear()} {configs?.school_full || "Centro Educacional Favo de Mel"}. Todos os direitos reservados.</span>
+          <span>© {new Date().getFullYear()} {configs?.school_full || "Colégio Favo"}. Todos os direitos reservados.</span>
           <span className="text-cream/30 text-[10px]">
             Desenvolvido por{" "}
             <a href="https://www.hljdev.com.br" target="_blank" rel="noreferrer" className="text-honey hover:underline font-semibold">

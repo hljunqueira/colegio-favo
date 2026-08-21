@@ -1,6 +1,9 @@
+import { MARQUEE_WORDS as DEFAULT_WORDS } from "@/lib/content";
+
 export const Marquee = ({ words }) => {
-  if (!words || words.length === 0) return null;
-  const items = [...words, ...words, ...words, ...words]; // Duplicated to ensure infinite loop overflow
+  const sourceWords = (words && words.length > 0) ? words : DEFAULT_WORDS;
+  if (!sourceWords || sourceWords.length === 0) return null;
+  const items = [...sourceWords, ...sourceWords, ...sourceWords, ...sourceWords]; // Duplicated to ensure infinite loop overflow
   
   return (
     <section className="py-10 bg-dark overflow-hidden" data-testid="marquee-section" aria-hidden="true">

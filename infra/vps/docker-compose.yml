@@ -1,47 +1,128 @@
 version: '3.8'
 
 services:
-  # --- Reverse Proxy ---
-  caddy:
-    image: caddy:latest
+  # --- 1. Supabase PostgreSQL ---
+  favo-supabase-db:
+    container_name: favo-supabase-db
+    image: supabase/postgres:15.1.1.78
+    command: postgres -c search_path=public,extensions,auth -c listen_addresses='*'
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - colegio-favo-network
-      - supabase_default
-
-  # --- n8n ---
-  n8n:
-    image: n8nio/n8n:latest
-    restart: always
+      - "127.0.0.1:5436:5432"
     environment:
-      - N8N_HOST=n8n.escolafavodemel.com.br
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - NODE_ENV=production
-      - WEBHOOK_URL=https://n8n.escolafavodemel.com.br/
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - n8n_data:/home/node/.n8n
+      - favo_db_data:/var/lib/postgresql/data
     networks:
-      - colegio-favo-network
+      - colegio_favo_net
 
-  # --- Redis (Cache para Evolution API) ---
-  redis:
+  # --- 2. Supabase Auth (GoTrue) ---
+  favo-supabase-auth:
+    container_name: favo-supabase-auth
+    image: supabase/gotrue:v2.161.0
+    restart: always
+    depends_on:
+      - favo-supabase-db
+    environment:
+      GOTRUE_EXTERNAL_DB_QUERY_TIMEOUT: 10s
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}@favo-supabase-db:5432/postgres?sslmode=disable&search_path=auth"
+      GOTRUE_SITE_URL: ${SITE_URL:-https://escolafavodemel.com.br}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-favo_jwt_secret_token_secure_2026_XyZ}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://supabase.escolafavodemel.com.br}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'
+      GOTRUE_MAILER_AUTOCONFIRM: 'true'
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@escolafavodemel.com.br
+      GOTRUE_DB_MAX_POOL_SIZE: 20
+    networks:
+      - colegio_favo_net
+
+  # --- 3. Supabase REST (PostgREST) ---
+  favo-supabase-rest:
+    container_name: favo-supabase-rest
+    image: postgrest/postgrest:v11.1.0
+    restart: always
+    depends_on:
+      - favo-supabase-db
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}@favo-supabase-db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET:-favo_jwt_secret_token_secure_2026_XyZ}
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
+    networks:
+      - colegio_favo_net
+
+  # --- 4. Supabase Kong Gateway ---
+  favo-supabase-kong:
+    container_name: favo-supabase-kong
+    image: kong:2.8.1
+    restart: always
+    depends_on:
+      - favo-supabase-auth
+      - favo-supabase-rest
+    ports:
+      - "8030:8000"
+    volumes:
+      - ./volumes/api/kong.yml:/var/lib/kong/kong.yml:ro
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,AAAA
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,jwt
+      KONG_NGINX_HTTP_PROXY_BUFFER_SIZE: 16k
+      KONG_NGINX_HTTP_PROXY_BUFFERS: 4 16k
+    networks:
+      - colegio_favo_net
+
+  # --- 5. Supabase Studio ---
+  favo-supabase-studio:
+    container_name: favo-supabase-studio
+    image: supabase/studio:2026.02.16-sha-26c615c
+    restart: always
+    ports:
+      - "8031:3000"
+    environment:
+      STUDIO_PG_META_URL: http://favo-supabase-meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}
+      SUPABASE_URL: http://favo-supabase-kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzg0Mzk3MjM3LCJleHAiOjIwOTk3NTcyMzd9.OWLxzoQBPXdgcbLruENE_JnutMSDM4T05Sunsqhe_eI}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY:-favo_service_role_key_2026}
+    networks:
+      - colegio_favo_net
+
+  # --- 6. Supabase Meta ---
+  favo-supabase-meta:
+    container_name: favo-supabase-meta
+    image: supabase/postgres-meta:v0.95.2
+    restart: always
+    depends_on:
+      - favo-supabase-db
+    environment:
+      PG_META_DB_HOST: favo-supabase-db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}
+    networks:
+      - colegio_favo_net
+
+  # --- 7. Redis (para Evolution e Caching) ---
+  favo-redis:
+    container_name: favo-redis
     image: redis:alpine
     restart: always
+    volumes:
+      - favo_redis_data:/data
     networks:
-      - colegio-favo-network
+      - colegio_favo_net
 
-  # --- Evolution API ---
-  evolution:
+  # --- 8. Evolution API (WhatsApp) ---
+  favo-evolution:
+    container_name: favo-evolution
     image: evoapicloud/evolution-api:v2.3.6
     restart: always
+    ports:
+      - "3035:8080"
     environment:
       - SERVER_TYPE=http
       - SERVER_PORT=8080
@@ -53,96 +134,88 @@ services:
       - AUTH_TOKEN=FAVO_SECRET_TOKEN_2026
       - DEL_INSTANCE_ON_DISCONNECT=false
       - DATABASE_ENABLED=true
-      - DATABASE_CONNECTION_URI=postgresql://favo_user:FAVO_DB_PASS_2026@db:5432/favo_infra_db?schema=public
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_CLIENT=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://postgres:${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}@favo-supabase-db:5432/postgres?schema=evolution
       - DATABASE_SAVE_DATA_HISTORY_MESSAGES=false
       - DATABASE_SAVE_DATA_MESSAGES=true
       - DATABASE_SAVE_MESSAGES=true
       - DATABASE_SAVE_DATA_NEW_MESSAGE=true
       - DATABASE_SAVE_DATA_CHATS=true
       - REDIS_ENABLED=true
-      - REDIS_URI=redis://redis:6379
-      - REDIS_PREFIX=EVO
+      - REDIS_URI=redis://favo-redis:6379
+      - REDIS_PREFIX=FAVO_EVO
       - CACHE_REDIS_ENABLED=true
-      - CACHE_REDIS_URI=redis://redis:6379
-      - CACHE_REDIS_PREFIX=EVO_CACHE
+      - CACHE_REDIS_URI=redis://favo-redis:6379
+      - CACHE_REDIS_PREFIX=FAVO_EVO_CACHE
     volumes:
-      - evolution_data:/evolution/instances
+      - favo_evolution_data:/evolution/instances
     depends_on:
-      - db
-      - redis
+      - favo-supabase-db
+      - favo-redis
     networks:
-      - colegio-favo-network
+      - colegio_favo_net
 
-  # --- Postgres (Infra DB) ---
-  db:
-    image: pgvector/pgvector:pg15
+  # --- 9. n8n (Automações) ---
+  favo-n8n:
+    container_name: favo-n8n
+    image: n8nio/n8n:latest
     restart: always
+    ports:
+      - "3032:5678"
     environment:
-      - POSTGRES_PASSWORD=FAVO_DB_PASS_2026
-      - POSTGRES_USER=favo_user
-      - POSTGRES_DB=favo_infra_db
+      - N8N_HOST=n8n.escolafavodemel.com.br
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.escolafavodemel.com.br/
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - favo_n8n_data:/home/node/.n8n
     networks:
-      - colegio-favo-network
+      - colegio_favo_net
 
-  # --- Portainer (Docker GUI) ---
-  portainer:
-    image: portainer/portainer-ce:latest
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - colegio-favo-network
-
-  # --- Uptime Kuma ---
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    restart: always
-    volumes:
-      - uptime_kuma_data:/app/data
-    networks:
-      - colegio-favo-network
-
-  # --- Next.js Web App (React SPA via Nginx) ---
-  app:
+  # --- 10. NestJS Backend API ---
+  favo-backend:
+    container_name: favo-backend
     build:
-      context: ../../
-      dockerfile: apps/web/Dockerfile
-    restart: always
-    networks:
-      - colegio-favo-network
-
-  # --- NestJS Backend API ---
-  backend:
-    build:
-      context: ../../
+      context: .
       dockerfile: apps/backend/Dockerfile
     restart: always
+    ports:
+      - "3031:3001"
     environment:
       - PORT=3001
-      - DATABASE_URL=postgresql://postgres:colegio_favo_secure_db_pass_2026_XyZ!@supabase-db:5432/postgres?schema=public
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-favo_postgres_secure_2026_XyZ!}@favo-supabase-db:5432/postgres?schema=public
     volumes:
-      - uploads_data:/app/uploads
+      - favo_uploads_data:/app/uploads
+    depends_on:
+      - favo-supabase-db
     networks:
-      - colegio-favo-network
-      - supabase_default
+      - colegio_favo_net
+
+  # --- 11. Web App (React / SPA) ---
+  favo-web:
+    container_name: favo-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: always
+    ports:
+      - "3030:3000"
+    depends_on:
+      - favo-backend
+    networks:
+      - colegio_favo_net
 
 networks:
-  colegio-favo-network:
+  colegio_favo_net:
+    name: colegio_favo_net
     driver: bridge
-  supabase_default:
-    external: true
 
 volumes:
-  caddy_data:
-  caddy_config:
-  n8n_data:
-  evolution_data:
-  db_data:
-  portainer_data:
-  uptime_kuma_data:
-  uploads_data:
+  favo_db_data:
+  favo_redis_data:
+  favo_n8n_data:
+  favo_evolution_data:
+  favo_uploads_data:

@@ -101,8 +101,8 @@ export default function AdminDashboard() {
       <header className="bg-dark">
         <div className="max-w-[1200px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
-            <span className="font-display font-extrabold tracking-tight text-cream">Painel · Favo de Mel</span>
+            <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
+            <span className="font-display font-extrabold tracking-tight text-cream">Painel · Colégio Favo</span>
           </div>
           <button onClick={logout} data-testid="logout-btn" className="inline-flex items-center gap-2 text-cream/80 hover:text-honey font-body text-sm transition-colors">
             <LogOut size={16} /> Sair

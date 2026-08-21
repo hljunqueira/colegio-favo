@@ -53,7 +53,7 @@ export const Scaffold = ({ item }) => (
       </div>
       <h2 className="font-display font-bold text-xl text-ink mb-2">Módulo {item.label}</h2>
       <p className="font-body text-sm mb-6" style={{ color: "var(--ink-2)" }}>
-        Este módulo faz parte do roadmap do sistema de gestão Favo de Mel. A estrutura e o design já estão prontos —
+        Este módulo faz parte do roadmap do sistema de gestão do Colégio Favo. A estrutura e o design já estão prontos —
         as funcionalidades serão ativadas nas próximas fases.
       </p>
       <p className="font-body text-xs tracking-widest uppercase text-amber mb-3">Funcionalidades planejadas</p>

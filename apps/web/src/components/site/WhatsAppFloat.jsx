@@ -16,7 +16,7 @@ export const WhatsAppFloat = ({ configs }) => {
   const [open, setOpen] = useState(false);
   const phone = configs?.school_phone || "(48) 99627-5127";
   const phoneRaw = configs?.school_phone_raw || "5548996275127";
-  const msg = encodeURIComponent("Olá! Gostaria de saber mais sobre o Centro Educacional Favo de Mel. 🐝");
+  const msg = encodeURIComponent("Olá! Gostaria de saber mais sobre o Colégio Favo. 🐝");
   const link = `https://wa.me/${phoneRaw}?text=${msg}`;
 
   return (
@@ -36,7 +36,7 @@ export const WhatsAppFloat = ({ configs }) => {
                   <WhatsAppIcon size={20} />
                 </span>
                 <div>
-                  <p className="font-display font-bold text-ink text-sm leading-tight">Favo de Mel</p>
+                  <p className="font-display font-bold text-ink text-sm leading-tight">Colégio Favo</p>
                   <p className="font-body text-[11px] text-emerald-600 font-semibold mt-0.5">{phone}</p>
                 </div>
               </div>

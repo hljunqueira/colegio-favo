@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { PROGRAMS as DEFAULT_PROGRAMS } from "@/lib/content";
 
 export const Programs = ({ programs }) => {
-  const validPrograms = (programs || []).filter(p => p.title && p.imageUrl);
+  const source = (programs && programs.length > 0) ? programs : DEFAULT_PROGRAMS;
+  const validPrograms = (source || []).filter(p => p.title && (p.imageUrl || p.img));
   if (validPrograms.length === 0) return null;
 
   return (
@@ -35,21 +37,21 @@ export const Programs = ({ programs }) => {
             >
                <div className="h-56 overflow-hidden">
                 <img
-                  src={p.imageUrl}
+                  src={p.imageUrl || p.img}
                   alt={p.title}
                   className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-110"
                 />
               </div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-serif-ed text-3xl text-honey">{`0${i + 1}`}</span>
+                  <span className="font-serif-ed text-3xl text-honey">{p.n || `0${i + 1}`}</span>
                   <ArrowUpRight className="text-honey opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <h3 className="font-display font-extrabold tracking-tight text-xl text-cream">
                   {p.title}
                 </h3>
-                <p className="font-body text-xs tracking-widest uppercase text-honey mt-1 mb-3">{p.extra}</p>
-                <p className="font-body text-sm text-cream/70 leading-relaxed">{p.description}</p>
+                <p className="font-body text-xs tracking-widest uppercase text-honey mt-1 mb-3">{p.extra || p.age}</p>
+                <p className="font-body text-sm text-cream/70 leading-relaxed">{p.description || p.desc}</p>
               </div>
             </motion.article>
           ))}

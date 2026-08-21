@@ -168,7 +168,7 @@ export default function PortalLogin() {
           <ArrowLeft size={16} /> Voltar ao site
         </a>
         <div className="flex items-center gap-3">
-          <img src="/logo-favo-oficial.png" alt="Centro Educacional Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
           <span className="font-display font-extrabold tracking-tight text-ink text-sm sm:text-base hidden sm:inline">
             Acesso Unificado
           </span>
@@ -182,7 +182,7 @@ export default function PortalLogin() {
             ÁREA DO <span className="text-amber italic font-serif-ed font-normal lowercase">portal</span>
           </h1>
           <p className="font-body text-ink-2 text-sm sm:text-base max-w-lg mx-auto">
-            Acesse notas, frequências, boletins e rotinas do Centro Educacional Favo de Mel. Escolha o seu perfil de acesso abaixo.
+            Acesse notas, frequências, boletins e rotinas do Colégio Favo. Escolha o seu perfil de acesso abaixo.
           </p>
         </div>
 
@@ -423,7 +423,7 @@ export default function PortalLogin() {
       {/* Footer Info Area */}
       <footer className="max-w-[1200px] mx-auto w-full mt-12 pt-6 border-t border-ink/5 text-center">
         <p className="font-body text-[11px] text-ink-2 mt-4">
-          © {new Date().getFullYear()} Centro Educacional Favo de Mel. Desenvolvido por HLJDEV.
+          © {new Date().getFullYear()} Colégio Favo. Desenvolvido por HLJDEV.
         </p>
       </footer>
       {/* Modal Primeiro Acesso */}

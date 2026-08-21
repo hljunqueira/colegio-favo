@@ -311,10 +311,10 @@ export default function PortalProfessor() {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-dark min-h-screen sticky top-0 p-5 text-cream border-r border-white/5 font-body shrink-0 z-30">
         <div className="flex items-center gap-2.5 mb-8 px-2">
-          <img src="/logo-favo-oficial.png" alt="Centro Educacional Favo de Mel" className="w-10 h-10 rounded-lg object-cover" />
+          <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover" />
           <div>
             <span className="font-display font-extrabold tracking-tight text-cream block text-sm leading-tight">Portal Professor</span>
-            <span className="text-[10px] text-cream/50 uppercase tracking-widest font-semibold block mt-0.5">Favo de Mel</span>
+            <span className="text-[10px] text-cream/50 uppercase tracking-widest font-semibold block mt-0.5">Colégio Favo</span>
           </div>
         </div>
 
@@ -349,7 +349,7 @@ export default function PortalProfessor() {
           <div className="relative w-64 bg-dark text-cream p-5 flex flex-col h-full z-10">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <img src="/logo-favo-oficial.png" alt="Favo de Mel" className="w-8 h-8 rounded-lg object-cover" />
+                <img src="/logo-favo-oficial.png" alt="Colégio Favo" className="w-8 h-8 rounded-lg object-cover" />
                 <span className="font-display font-extrabold text-sm text-cream">Portal Professor</span>
               </div>
               <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 text-cream/70 hover:text-cream">

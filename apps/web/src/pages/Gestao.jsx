@@ -171,7 +171,7 @@ export default function Gestao() {
         {/* Sidebar Header */}
         <div className={`flex items-center justify-between p-5 shrink-0 ${isCollapsed ? "justify-center" : ""}`}>
           <div className="flex items-center gap-2 overflow-hidden">
-            <img src="/logo-favo.jpg" alt="Favo de Mel" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+            <img src="/logo-favo.jpg" alt="Colégio Favo" className="w-10 h-10 rounded-lg object-cover shrink-0" />
             {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0 }}

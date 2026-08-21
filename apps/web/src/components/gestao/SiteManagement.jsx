@@ -254,7 +254,7 @@ export const SiteManagement = () => {
               <Input
                 value={configs.school_full}
                 onChange={(e) => handleConfigChange("school_full", e.target.value)}
-                placeholder="Ex: Centro Educacional Favo de Mel"
+                placeholder="Ex: Colégio Favo"
               />
             </div>
             <div className="space-y-2">

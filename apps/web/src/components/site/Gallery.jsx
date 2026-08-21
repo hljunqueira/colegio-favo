@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import { GALLERY as DEFAULT_GALLERY } from "@/lib/content";
 
 export const Gallery = ({ gallery }) => {
-  const validGallery = (gallery || []).filter(g => g.imageUrl);
+  const source = (gallery && gallery.length > 0) ? gallery : DEFAULT_GALLERY;
+  const validGallery = (source || []).filter(g => g.imageUrl || g.img);
   if (validGallery.length === 0) return null;
 
   return (
@@ -25,18 +27,20 @@ export const Gallery = ({ gallery }) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: (i % 3) * 0.08 }}
-              className={`relative overflow-hidden rounded-2xl group ${g.extra || ""}`}
+              className={`relative overflow-hidden rounded-2xl group ${g.extra || g.span || ""}`}
               data-testid={`gallery-item-${i}`}
             >
               <img
-                src={g.imageUrl}
-                alt={g.title || ""}
+                src={g.imageUrl || g.img}
+                alt={g.title || g.label || ""}
                 className="w-full h-full object-cover grayscale-[35%] saturate-[0.9] transition-all duration-700 group-hover:grayscale-0 group-hover:saturate-100 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-dark/0 group-hover:bg-dark/20 transition-colors duration-500" />
-              <figcaption className="absolute bottom-3 left-3 font-body text-xs tracking-widest uppercase text-cream opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 bg-dark/60 backdrop-blur px-3 py-1.5 rounded-full">
-                {g.title}
-              </figcaption>
+              {(g.title || g.label) && (
+                <figcaption className="absolute bottom-3 left-3 font-body text-xs tracking-widest uppercase text-cream opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 bg-dark/60 backdrop-blur px-3 py-1.5 rounded-full">
+                  {g.title || g.label}
+                </figcaption>
+              )}
             </motion.figure>
           ))}
         </div>

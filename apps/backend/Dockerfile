@@ -4,19 +4,14 @@ RUN npm install -g pnpm
 
 WORKDIR /app
 
-# Copy configuration, prisma and shared packages
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY prisma/ ./prisma/
-COPY packages/ ./packages/
-COPY apps/backend/package.json ./apps/backend/package.json
+# Copy all workspace source and configuration
+COPY . .
 
-# Install dependencies (all links are resolved correctly within /app/node_modules)
-RUN pnpm install --frozen-lockfile
+# Set build-time env for prisma generate
+ENV DATABASE_URL="postgresql://postgres:dummy@localhost:5432/postgres?schema=public"
 
-# Copy backend source
-COPY apps/backend/ ./apps/backend/
-
-# Generate Prisma Client
+# Install dependencies and generate Prisma client
+RUN pnpm install
 RUN pnpm exec prisma generate
 
 # Build NestJS API

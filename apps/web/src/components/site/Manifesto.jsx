@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import { MANIFESTO as DEFAULT_MANIFESTO } from "@/lib/content";
 
 export const Manifesto = ({ manifesto }) => {
-  if (!manifesto || manifesto.length === 0) return null;
+  const items = (manifesto && manifesto.length > 0) ? manifesto : DEFAULT_MANIFESTO;
+  if (!items || items.length === 0) return null;
 
   return (
     <section id="filosofia" className="py-28 sm:py-40 bg-cream" data-testid="manifesto-section">
@@ -23,7 +25,7 @@ export const Manifesto = ({ manifesto }) => {
         </motion.div>
 
         <div className="space-y-2">
-          {manifesto.map((m, i) => (
+          {items.map((m, i) => (
             <motion.div
               key={m.id || i}
               initial={{ opacity: 0, y: 40 }}
@@ -33,13 +35,13 @@ export const Manifesto = ({ manifesto }) => {
               className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 py-12 border-t border-ink/10 items-start group"
             >
               <div className="md:col-span-3 font-serif-ed text-7xl sm:text-8xl leading-none text-amber/90">
-                {m.extra}
+                {m.extra || m.n || `0${i + 1}`}
               </div>
               <h3 className="md:col-span-4 font-display font-extrabold tracking-tight text-3xl sm:text-4xl text-ink group-hover:text-amber transition-colors duration-300">
                 {m.title}
               </h3>
               <p className="md:col-span-5 font-body text-base sm:text-lg" style={{ color: "var(--ink-2)" }}>
-                {m.description}
+                {m.description || m.text}
               </p>
             </motion.div>
           ))}
