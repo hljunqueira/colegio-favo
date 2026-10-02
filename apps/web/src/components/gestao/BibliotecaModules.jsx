@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { authHeader } from "@/lib/auth";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 // --- MAIN UNIFIED BIBLIOTECA COMPONENT ---
 export const Biblioteca = () => {

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { authHeader } from "@/lib/auth";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 const STATUS = ["novo", "em contato", "matriculado", "arquivado"];
 const SC = { novo: "bg-honey text-dark", "em contato": "bg-amber text-cream", matriculado: "bg-moss text-cream", arquivado: "bg-ink/20 text-ink" };
 

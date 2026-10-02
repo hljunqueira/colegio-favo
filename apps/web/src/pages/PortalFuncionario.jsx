@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export default function PortalFuncionario() {
   const navigate = useNavigate();

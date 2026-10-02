@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API, BACKEND_URL } from "@/lib/api";
 
 export default function MatriculaPublica() {
   const { token } = useParams();
@@ -284,7 +284,7 @@ export default function MatriculaPublica() {
                       
                       {uploadedUrl && (
                         <a 
-                          href={`${process.env.REACT_APP_BACKEND_URL}${uploadedUrl.replace('/favo-api', '')}`} 
+                          href={`${BACKEND_URL}${uploadedUrl.replace('/favo-api', '')}`} 
                           target="_blank" 
                           rel="noreferrer"
                           className="text-[10px] font-bold text-blue-500 hover:underline"

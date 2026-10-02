@@ -20,7 +20,7 @@ import {
   Transferencias 
 } from "@/components/gestao/SecretariaModules";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export default function PortalSecretaria() {
   const navigate = useNavigate();

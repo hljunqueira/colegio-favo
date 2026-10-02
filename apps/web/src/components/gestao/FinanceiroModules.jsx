@@ -13,7 +13,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 // Importa o componente original de mensalidades
 import { Financeiro } from "./ReadLists";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 const brl = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 // --- MAIN UNIFIED FINANCEIRO COMPONENT ---

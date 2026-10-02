@@ -8,7 +8,7 @@ import { authHeader } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export const SiteManagement = () => {
   const [activeTab, setActiveTab] = useState("geral");

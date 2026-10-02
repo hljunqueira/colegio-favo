@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VPS_IP="184.107.141.97"
+VPS_IP="23.80.89.116"
 VPS_DIR="/root/colegio-favo"
 
 echo "=== [1/3] Sincronizando código completo do Monorepo com a VPS ==="

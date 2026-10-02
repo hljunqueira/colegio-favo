@@ -1,6 +1,7 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-RUN npm install -g pnpm
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm@9.0.0
 
 WORKDIR /app
 

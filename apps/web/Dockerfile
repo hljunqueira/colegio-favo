@@ -1,10 +1,10 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 # Set env to disable Craco lint overlay or test logs during build
 ENV DISABLE_ESLINT_PLUGIN=true
 ENV GENERATE_SOURCEMAP=false
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9.0.0
 
 WORKDIR /app
 
@@ -20,6 +20,8 @@ RUN pnpm install --frozen-lockfile
 
 # Copy web source and build
 COPY apps/web/ ./apps/web/
+ARG REACT_APP_BACKEND_URL=https://api.escolafavodemel.com.br
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 RUN pnpm --filter @colegio-favo/web build
 
 # Runner stage

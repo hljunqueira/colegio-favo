@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API, BACKEND_URL } from "@/lib/api";
 
 export default function PortalCoordenador() {
   const navigate = useNavigate();
@@ -700,7 +700,7 @@ export default function PortalCoordenador() {
                           <div key={doc.id} className="border border-ink/10 rounded-xl p-3 bg-cream/10 flex items-center justify-between">
                             <span className="text-[11px] font-semibold text-ink">{docLabels[doc.tipo] || doc.tipo}</span>
                             <a
-                              href={`${process.env.REACT_APP_BACKEND_URL}${doc.fileUrl.replace('/favo-api', '')}`}
+                              href={`${BACKEND_URL}${doc.fileUrl.replace('/favo-api', '')}`}
                               target="_blank"
                               rel="noreferrer"
                               className="text-[10px] text-blue-500 hover:underline flex items-center gap-1 font-bold"

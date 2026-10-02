@@ -1,7 +1,7 @@
 ---
 name: colegio-favo-infra
 description: >-
-  Guia de arquitetura, padrões e implantação de infraestrutura para o ecossistema Colégio Favo (Next.js, NestJS, Expo, Supabase, Evolution API, n8n). Use para entender a arquitetura do monorepo, regras do projeto e deploy na VPS 184.107.141.97.
+  Guia de arquitetura, padrões e implantação de infraestrutura para o ecossistema Colégio Favo (Next.js, NestJS, Expo, Supabase, Evolution API, n8n). Use para entender a arquitetura do monorepo, regras do projeto e deploy na VPS 23.80.89.116.
 ---
 
 # Skill de Infraestrutura e Arquitetura - Colégio Favo

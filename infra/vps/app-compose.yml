@@ -1,0 +1,44 @@
+services:
+  # --- 1. NestJS Backend API ---
+  favo-backend:
+    container_name: favo-backend
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    restart: always
+    ports:
+      - "3031:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:vJs0_yJMuDN57gdhiYojOZm8Gn0HvhOx@favo-postgres-16:5432/postgres?schema=public
+      - JWT_SECRET=27ZLO2bVQfwV8dj1zh29VFxSYjLAimJGtWa2cKmLOBJ5adp44jyE0S_c5jtwkSIl
+    volumes:
+      - favo_uploads_data:/app/uploads
+    networks:
+      - colegio_favo_net
+
+  # --- 2. Web App (React / SPA) ---
+  favo-web:
+    container_name: favo-web
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        - REACT_APP_BACKEND_URL=https://api.escolafavodemel.com.br
+    restart: always
+    ports:
+      - "3030:3000"
+    depends_on:
+      - favo-backend
+    networks:
+      - colegio_favo_net
+
+networks:
+  colegio_favo_net:
+    external: true
+    name: colegio_favo_net
+
+volumes:
+  favo_uploads_data:
+    name: favo_uploads_data

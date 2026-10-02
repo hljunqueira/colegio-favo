@@ -10,7 +10,7 @@ import {
 import { authHeader } from "@/lib/auth";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export const Alunos = () => {
   const [alunos, setAlunos] = useState([]);

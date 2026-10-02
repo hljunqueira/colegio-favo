@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 const STATUS = ["novo", "em contato", "matriculado", "arquivado"];
 const STATUS_COLOR = {
   novo: "bg-honey text-dark",

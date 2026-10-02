@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API, BACKEND_URL } from "@/lib/api";
 
 const monthsName = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -269,7 +269,7 @@ export default function PortalProfessor() {
         }
       });
       if (res.data?.url) {
-        const fullUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url.replace('/favo-api', '')}`;
+        const fullUrl = `${BACKEND_URL}${res.data.url.replace('/favo-api', '')}`;
         localStorage.setItem(`avatar_${user?.id}`, fullUrl);
         setUserAvatar(fullUrl);
         toast.success("Foto de perfil atualizada!");

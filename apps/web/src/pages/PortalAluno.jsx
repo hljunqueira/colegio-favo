@@ -9,7 +9,7 @@ import { clearSession, getUser, authHeader, getToken } from "@/lib/auth";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export default function PortalAluno() {
   const navigate = useNavigate();

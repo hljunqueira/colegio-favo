@@ -18,8 +18,7 @@ import { FinanceiroGeral } from "@/components/gestao/FinanceiroModules";
 import { Biblioteca } from "@/components/gestao/BibliotecaModules";
 import { PortariaSaude } from "@/components/gestao/PortariaSaudeModules";
 import { Administracao } from "@/components/gestao/AdminModules";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API, BACKEND_URL } from "@/lib/api";
 
 export default function Gestao() {
   const [ready, setReady] = useState(false);
@@ -51,7 +50,7 @@ export default function Gestao() {
         }
       });
       if (res.data?.url) {
-        const fullUrl = `${process.env.REACT_APP_BACKEND_URL}${res.data.url.replace('/favo-api', '')}`;
+        const fullUrl = `${BACKEND_URL}${res.data.url.replace('/favo-api', '')}`;
         localStorage.setItem(`avatar_${user?.id}`, fullUrl);
         setUserAvatar(fullUrl);
         toast.success("Foto de perfil atualizada!");

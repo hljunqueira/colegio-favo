@@ -13,7 +13,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 // Importações dos componentes existentes na mesma pasta
 import { SiteManagement } from "./SiteManagement";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 // Helper de tradução para cargos/roles
 const translateRole = (role) => {

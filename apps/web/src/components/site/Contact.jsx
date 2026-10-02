@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { SCHOOL } from "@/lib/content";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export const Contact = ({ configs }) => {
   const [form, setForm] = useState({

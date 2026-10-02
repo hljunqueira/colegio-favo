@@ -80,6 +80,11 @@ export class GestaoController {
     return this.gestaoService.getFinanceiro();
   }
 
+  @Post('gestao/financeiro')
+  async createFinanceiro(@Body() body: any) {
+    return this.gestaoService.createFinanceiro(body);
+  }
+
   @Patch('gestao/financeiro/:id')
   async updateFinanceiro(@Param('id') id: string, @Body() body: any) {
     return this.gestaoService.updateFinanceiro(id, body);

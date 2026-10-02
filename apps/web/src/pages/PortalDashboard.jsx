@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getUser, authHeader, clearSession, getToken } from "@/lib/auth";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 const NAV = [
   { key: "mural", label: "Mural", icon: LayoutGrid },

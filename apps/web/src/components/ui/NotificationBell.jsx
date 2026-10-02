@@ -3,7 +3,7 @@ import axios from "axios";
 import { Bell, CheckCheck, Megaphone, X } from "lucide-react";
 import { authHeader } from "@/lib/auth";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API } from "@/lib/api";
 
 export function NotificationBell() {
   const [avisos, setAvisos] = useState([]);
